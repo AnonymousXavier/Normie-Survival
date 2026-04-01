@@ -1,0 +1,3 @@
+world = {}
+spatial_grid = {}
+
