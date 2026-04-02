@@ -1,37 +1,56 @@
 import pygame
 
-from ECS.Systems import FlowFieldSystem
+from Core import States
+from ECS import Factories
+from ECS.Components import SpacialComponent
+from ECS.Systems import DebugRenderingSystem, FlowFieldSystem, InputSystem, RenderingSystem, DebugSystem, MovementSystem
 from Globals import Settings
 
 class Main:
 	def __init__(self) -> None:
-		self.running = True
-		self.window = pygame.display.set_mode(Settings.WINDOW.SIZE)
+		player_id = Factories.spawn_player(States.world, States.spatial_grid, 0, 0)
+		States.camera = Factories.new_camera((0, 0), Settings.CAMERA.SIZE, player_id)
 
-		w, h = Settings.MAP.SIZE
-		hw, hh = w // 2, h // 2
-		FlowFieldSystem.flow_field = FlowFieldSystem.create_flow_field((hw, hh))
 
 	def draw(self):
-		FlowFieldSystem.draw(self.window)
+		# FlowFieldSystem.draw(self.window)
+		Settings.window.fill(Settings.COLOURS.BLACK)
+		RenderingSystem.process(
+			surface=Settings.window, 
+			world=States.world, 
+			spatial_grid=States.spatial_grid, 
+			camera=States.camera, 
+		)
 
-	def input(self):
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
-				self.running = False
+	def handle_debug(self):
+		debug = {}
+		debug_spatial_grid = {}
+
+		DebugSystem.process(debug, debug_spatial_grid)
+		DebugRenderingSystem.process(
+			surface=Settings.window,
+			debug=debug,
+			debug_grid=debug_spatial_grid,
+			camera=States.camera
+		)
 
 	def update(self):
-		self.input()
+		events = []
 
-		mx, my = pygame.mouse.get_pos()
-		mxi, myi = mx // Settings.CELLS.WIDTH, my // Settings.CELLS.HEIGHT
+		dt = Settings.WINDOW.CLOCK.tick(Settings.UPDATE.FPS) / 1000
 
-		FlowFieldSystem.flow_field = FlowFieldSystem.create_flow_field((mxi, myi))
+		InputSystem.process(States.world, events)
+		MovementSystem.process(States.world, States.spatial_grid, events, dt)
+		FlowFieldSystem.flow_field = FlowFieldSystem.create_flow_field(States.world[1][SpacialComponent].grid_pos)
+
 		pygame.display.update()
 
 	def run(self):
-		while self.running:
+		while States.GAME_RUNNING:
 			self.update()
 			self.draw()
+			if Settings.WINDOW.DEBUG:
+				self.handle_debug()
+			
 
 Main().run()

@@ -1,5 +1,5 @@
 from collections import deque
-import pygame
+from ECS import Factories
 from Globals import Cache, Settings
 
 flow_field = {}
@@ -40,20 +40,7 @@ def _get_cell_neighbours(pos: tuple):
 
 		return neighbours
 
-def draw(surface: pygame.Surface):
-	cw, ch = Settings.CELLS.SIZE
-
+def store_arrows_in_degub(debug: dict, debug_grid: dict):
 	for xi, yi in flow_field:
-		x = xi * cw
-		y = yi * ch
-
-		col = (100, 100, 100)
-		if flow_field[(xi, yi)] == 0:
-			col = (150, 125, 125)
-
 		icon_surface = Cache.SPRITES.DEBUG.ARROWS_SPRITES[flow_field[(xi, yi)]]
-
-		rect = pygame.Rect(x, y, cw, ch)
-		icon_rect = icon_surface.get_rect(center = rect.center)
-		pygame.draw.rect(surface, col, rect)
-		surface.blit(icon_surface, icon_rect)
+		Factories.spawn_flowfield_arrow(debug, debug_grid, xi, yi, icon_surface)

@@ -3,3 +3,6 @@ class DIRECTIONS:
 	RIGHT = (1, 0)
 	UP = (0, -1)
 	DOWN = (0, 1)
+
+class EVENT_TYPES:
+	MOVEMENT_INTENT = 0
