@@ -11,11 +11,6 @@ class WINDOW:
 	DEBUG = True
 	CLOCK = pygame.Clock()
 
-class MAP:
-	ROWS = 20
-	COLS = 20
-	SIZE = ROWS, COLS
-
 class SPRITE:
 	WIDTH = 16
 	HEIGHT = 16
@@ -32,6 +27,8 @@ class UPDATE:
 
 class GAME:
 	PLAYER_SPEED = 8
+	ALLOWABLE_NUMBER_OF_ENEMIES = 10
+	MAX_DISTANCE_FROM_PLAYER = 25
 
 class COLOURS:
 	BLACK = (0, 0, 0)

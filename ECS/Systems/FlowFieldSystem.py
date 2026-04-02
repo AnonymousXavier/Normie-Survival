@@ -5,19 +5,22 @@ from Globals import Cache, Settings
 flow_field = {}
 
 def create_flow_field(target_pos):
-	direction_field = {}
+	max_radius=Settings.GAME.MAX_DISTANCE_FROM_PLAYER
 
+	direction_field = {}
 	queue = deque()
 	queue.append(target_pos)
-
 	direction_field[target_pos] = 0, 0
 
 	while queue:
-		px, py = queue.popleft() # Get First Point
+		px, py = queue.popleft() 
+		
+		# Stop calculating if we've gone too far from the player
+		if abs(px - target_pos[0]) > max_radius or abs(py - target_pos[1]) > max_radius:
+			continue
 
 		for neighbour in _get_cell_neighbours((px, py)):
 			if neighbour not in direction_field:
-
 				nx, ny = neighbour
 				dx, dy = px - nx, py - ny
 
@@ -27,18 +30,14 @@ def create_flow_field(target_pos):
 	return direction_field
 
 def _get_cell_neighbours(pos: tuple):
-		px, py = pos
-		directions = [(-1, 0), (0, 1), (0, -1), (1, 0)]
-		neighbours = []
+	px, py = pos
+	directions = [(-1, 0), (0, 1), (0, -1), (1, 0)]
+	neighbours = []
+	
+	for dx, dy in directions:
+		neighbours.append((px + dx, py + dy))
 
-		w, h = Settings.MAP.SIZE
-
-		for dx, dy in directions:
-			nx, ny = px + dx, py + dy
-			if 0 <= nx < w and 0 <= ny < h:
-				neighbours.append((nx, ny))
-
-		return neighbours
+	return neighbours
 
 def store_arrows_in_degub(debug: dict, debug_grid: dict):
 	for xi, yi in flow_field:

@@ -3,13 +3,13 @@ import pygame
 from Core import States
 from ECS import Factories
 from ECS.Components import SpacialComponent
-from ECS.Systems import DebugRenderingSystem, FlowFieldSystem, InputSystem, RenderingSystem, DebugSystem, MovementSystem
+from ECS.Systems import AINavigationSystem, CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, RenderingSystem, DebugSystem, MovementSystem
 from Globals import Settings
 
 class Main:
 	def __init__(self) -> None:
-		player_id = Factories.spawn_player(States.world, States.spatial_grid, 0, 0)
-		States.camera = Factories.new_camera((0, 0), Settings.CAMERA.SIZE, player_id)
+		States.PLAYER_ID = Factories.spawn_player(States.world, States.spatial_grid, 0, 0)
+		States.camera = Factories.new_camera((0, 0), Settings.CAMERA.SIZE, States.PLAYER_ID)
 
 
 	def draw(self):
@@ -40,8 +40,12 @@ class Main:
 		dt = Settings.WINDOW.CLOCK.tick(Settings.UPDATE.FPS) / 1000
 
 		InputSystem.process(States.world, events)
+		AINavigationSystem.process(States.world, events)
 		MovementSystem.process(States.world, States.spatial_grid, events, dt)
-		FlowFieldSystem.flow_field = FlowFieldSystem.create_flow_field(States.world[1][SpacialComponent].grid_pos)
+		EnemySpawner.process(States.world, States.spatial_grid)
+
+		CameraSystem.process(States.world, States.camera, dt)
+		FlowFieldSystem.flow_field = FlowFieldSystem.create_flow_field(States.world[States.PLAYER_ID][SpacialComponent].grid_pos)
 
 		pygame.display.update()
 

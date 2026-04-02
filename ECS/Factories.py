@@ -3,7 +3,7 @@ import pygame
 
 from Core import States
 from Globals import Settings, Misc
-from ECS.Components import (SpacialComponent, RenderComponent, 
+from ECS.Components import (EnemyTag, SpacialComponent, RenderComponent, 
 	PlayerInputTag, StalkerComponent)
 
 
@@ -50,5 +50,25 @@ def spawn_flowfield_arrow(debug: dict, debug_grid: dict, grid_x: int, grid_y: in
 
 	debug[new_id] = arrow
 	Misc.register_entity_in_grid(new_id, (grid_x, grid_y), debug_grid)
+	return new_id
+
+def spawn_enemy(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
+	x, y = grid_x * Settings.SPRITE.WIDTH, grid_y * Settings.SPRITE.HEIGHT
+
+	new_id = States.NEXT_ENTITY_ID
+	States.NEXT_ENTITY_ID += 1
+
+	enemy = {
+		SpacialComponent: SpacialComponent(
+			grid_pos= (grid_x, grid_y),
+			rect=pygame.Rect(x, y, Settings.SPRITE.WIDTH, Settings.SPRITE.HEIGHT)
+		),
+		RenderComponent: RenderComponent(color=Settings.DEBUG.PLAYER_COLOR),
+		EnemyTag: EnemyTag(),
+	}
+
+	world[new_id] = enemy
+	Misc.register_entity_in_grid(new_id, (grid_x, grid_y), spatial_grid)
+
 	return new_id
 

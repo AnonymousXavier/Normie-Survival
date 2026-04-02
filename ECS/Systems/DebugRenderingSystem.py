@@ -18,7 +18,8 @@ def draw_debug_elements(debug: dict, debug_grid: dict, camera: dict, cam_boundar
 	cam_right, cam_bottom = cam_boundary["right"], cam_boundary["bottom"]
 
 	camera_rect: pygame.Rect = camera[SpacialComponent].rect
-	render_surface = pygame.Surface((cbw, cbh))
+	
+	render_surface = pygame.Surface((cbw, cbh), pygame.SRCALPHA)
 
 	for iy in range(cam_top, cam_bottom + 1):
 		for ix in range(cam_left, cam_right + 1):
