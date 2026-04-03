@@ -11,6 +11,7 @@ class SpacialComponent:
 class RenderComponent:
 	color: tuple
 	sprite: Optional[pygame.Surface] = None
+	base_sprite: Optional[pygame.Surface] = None # Stores the original image
 	z_index: int = 0
 
 @dataclass(kw_only=True)
@@ -48,7 +49,7 @@ class PowerUpComponent:
 
 @dataclass(kw_only=True)
 class RotationComponent:
-	angle = 90
+	angle: float = 0.0 
 
 class PlayerInputTag: 
 	pass

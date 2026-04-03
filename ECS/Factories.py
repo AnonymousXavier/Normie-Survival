@@ -4,7 +4,7 @@ import pygame
 from Core import States
 from Globals import Settings, Misc, Enums
 from ECS.Components import (EnemyTag, PowerUpComponent, PowerUpTag, SpacialComponent, RenderComponent, 
-	PlayerInputTag, StalkerComponent)
+	PlayerInputTag, StalkerComponent, RotationComponent)
 
 
 def new_camera(cams_topleft: tuple, cams_size: tuple, target_id: int):
@@ -78,14 +78,24 @@ def spawn_shotgun(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
 	new_id = States.NEXT_ENTITY_ID
 	States.NEXT_ENTITY_ID += 1
 
+	# Create a temporary surface with a "barrel" drawn on it so we can see where it aims
+	placeholder_surface = pygame.Surface(Settings.SPRITE.SIZE, pygame.SRCALPHA)
+	placeholder_surface.fill((100, 100, 100)) # Gray gun body
+	pygame.draw.rect(placeholder_surface, Settings.COLOURS.BLACK, (10, 6, 6, 4)) # Black barrel pointing right (0 degrees)
+
 	shotgun = {
 		SpacialComponent: SpacialComponent(
-			grid_pos= (grid_x, grid_y),
+			grid_pos=(grid_x, grid_y),
 			rect=pygame.Rect(x, y, Settings.SPRITE.WIDTH, Settings.SPRITE.HEIGHT)
 		),
-		RenderComponent: RenderComponent(color=Settings.DEBUG.PLAYER_COLOR),
+		RenderComponent: RenderComponent(
+			color=Settings.DEBUG.PLAYER_COLOR, 
+			sprite=placeholder_surface, 
+			base_sprite=placeholder_surface
+		),
 		PowerUpComponent: PowerUpComponent(_id=Enums.POWERUPS.SHOTGUN),
-		PowerUpTag: PowerUpTag()
+		PowerUpTag: PowerUpTag(),
+		RotationComponent: RotationComponent() 
 	}
 
 	world[new_id] = shotgun

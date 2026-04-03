@@ -3,7 +3,7 @@ import pygame
 from Core import States
 from ECS import Factories
 from ECS.Components import SpacialComponent
-from ECS.Systems import AINavigationSystem, CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, PowerUpsSystem, RenderingSystem, DebugSystem, MovementSystem
+from ECS.Systems import AINavigationSystem, AimingSystem, CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, PowerUpsSystem, RenderingSystem, DebugSystem, MovementSystem
 from Globals import Settings, Enums
 
 class Main:
@@ -42,6 +42,7 @@ class Main:
 		dt = Settings.WINDOW.CLOCK.tick(Settings.UPDATE.FPS) / 1000
 
 		InputSystem.process(States.world, events)
+		AimingSystem.process(States.world, States.camera)
 		AINavigationSystem.process(States.world, events)
 		MovementSystem.process(States.world, States.spatial_grid, events, dt)
 		EnemySpawner.process(States.world, States.spatial_grid)
