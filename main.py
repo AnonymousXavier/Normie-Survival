@@ -3,7 +3,7 @@ import pygame
 from Core import States
 from ECS import Factories
 from ECS.Components import SpacialComponent
-from ECS.Systems import AINavigationSystem, AimingSystem, WeaponSystem,CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, OrbitalSystem, ProjectileSystem, RenderingSystem, DebugSystem, MovementSystem
+from ECS.Systems import AINavigationSystem, CollisionSystem, AimingSystem, WeaponSystem,CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, OrbitalSystem, ProjectileSystem, RenderingSystem, DebugSystem, MovementSystem
 from Globals import Settings
 
 class Main:
@@ -11,8 +11,9 @@ class Main:
 		States.PLAYER_ID = Factories.spawn_player(States.world, States.spatial_grid, 0, 0)
 		States.camera = Factories.new_camera((0, 0), Settings.CAMERA.SIZE, States.PLAYER_ID)
 
-		for _ in range(2):
-			Factories.spawn_shotgun(States.world, States.spatial_grid, States.PLAYER_ID)
+		# Spawn two shotguns, opposite to each other, rotating at 90 degrees per second
+		Factories.spawn_shotgun(States.world, States.spatial_grid, States.PLAYER_ID, start_angle=0.0)
+		Factories.spawn_shotgun(States.world, States.spatial_grid, States.PLAYER_ID, start_angle=180.0)
 
 	def draw(self):
 		Settings.window.fill(Settings.COLOURS.BLACK)
@@ -48,6 +49,9 @@ class Main:
 		MovementSystem.process(States.world, States.spatial_grid, events, dt)
 		ProjectileSystem.process(States.world, States.spatial_grid, States.camera, dt)
 		WeaponSystem.process(States.world, States.spatial_grid, dt)
+
+		# Run collisions after movement but before spawning new things
+		CollisionSystem.process(States.world, States.spatial_grid)
 
 		EnemySpawner.process(States.world, States.spatial_grid)
 		OrbitalSystem.process(States.world, States.spatial_grid, dt)

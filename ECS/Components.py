@@ -81,6 +81,18 @@ class OrbitalComponent:
     angle: float = 0.0  
     spin_speed: float = 0.0 # Degrees per second
 
+@dataclass
+class WeaponStats:
+    projectile_count: int = 3
+    spread_angle: float = 30.0  # Total arc of the cone in degrees
+    damage: int = 1
+    speed: float = 300.0
+    fire_rate: float = 1.0  # Seconds between shots
+
+@dataclass(kw_only=True, slots=True)
+class HealthComponent:
+    hp: int = 1
+
 class PlayerInputTag: 
 	pass
 class FloorTag: 

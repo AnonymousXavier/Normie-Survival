@@ -4,7 +4,7 @@ import math
 
 from Core import States
 from Globals import Settings, Misc, Enums
-from ECS.Components import (EnemyTag, FacingDirectionComponent, PowerUpComponent, PowerUpTag, SpacialComponent, RenderComponent, 
+from ECS.Components import (EnemyTag, FacingDirectionComponent, HealthComponent, PowerUpTag, SpacialComponent, RenderComponent, 
 	PlayerInputTag, StalkerComponent, RotationComponent, CooldownComponent, ProjectileComponent, OrbitalComponent)
 
 
@@ -61,12 +61,13 @@ def spawn_enemy(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
 	States.NEXT_ENTITY_ID += 1
 
 	enemy = {
-		SpacialComponent: SpacialComponent(
-			grid_pos= (grid_x, grid_y),
-			rect=pygame.Rect(x, y, Settings.SPRITE.WIDTH, Settings.SPRITE.HEIGHT)
-		),
-		RenderComponent: RenderComponent(color=Settings.DEBUG.ENEMY_COLOR),
-		EnemyTag: EnemyTag(),
+	    SpacialComponent: SpacialComponent(
+	        grid_pos= (grid_x, grid_y),
+	        rect=pygame.Rect(x, y, Settings.SPRITE.WIDTH, Settings.SPRITE.HEIGHT)
+	    ),
+	    RenderComponent: RenderComponent(color=Settings.DEBUG.ENEMY_COLOR),
+	    EnemyTag: EnemyTag(),
+	    HealthComponent: HealthComponent(hp=3) # Enemies now have 3 HP
 	}
 
 	world[new_id] = enemy
@@ -74,7 +75,10 @@ def spawn_enemy(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
 
 	return new_id
 
-def spawn_shotgun(world: dict, spatial_grid: dict, target_id: int):
+
+	
+
+def spawn_shotgun(world: dict, spatial_grid: dict, target_id: int, start_angle: float = 0.0, spin_speed: float = 0.0):
     new_id = States.NEXT_ENTITY_ID
     States.NEXT_ENTITY_ID += 1
 
@@ -85,7 +89,7 @@ def spawn_shotgun(world: dict, spatial_grid: dict, target_id: int):
 
     shotgun = {
         SpacialComponent: SpacialComponent(
-            grid_pos=(0, 0), # The OrbitalSystem will instantly overwrite this on frame 1
+            grid_pos=(0, 0),
             rect=pygame.Rect(0, 0, Settings.SPRITE.WIDTH, Settings.SPRITE.HEIGHT)
         ),
         RenderComponent: RenderComponent(
@@ -93,8 +97,8 @@ def spawn_shotgun(world: dict, spatial_grid: dict, target_id: int):
             sprite=placeholder_surface, 
             base_sprite=placeholder_surface 
         ),
-        # Here are the new behavioral components!
-        OrbitalComponent: OrbitalComponent(target_id=target_id, radius=2.0, angle=0.0, spin_speed=0.0),
+        # Pass the new dynamic variables here!
+        OrbitalComponent: OrbitalComponent(target_id=target_id, radius=2.0, angle=start_angle, spin_speed=spin_speed),
         CooldownComponent: CooldownComponent(fire_rate=1.0),
         RotationComponent: RotationComponent(),
         PowerUpTag: PowerUpTag()
@@ -105,13 +109,12 @@ def spawn_shotgun(world: dict, spatial_grid: dict, target_id: int):
 
     return new_id
 
-def spawn_bullet(world: dict, spatial_grid: dict, center_x: float, center_y: float, angle_deg: float):
+def spawn_bullet(world: dict, spatial_grid: dict, center_x: float, center_y: float, angle_deg: float, speed: float, damage: int):
     angle_rad = math.radians(-angle_deg) 
     
     dx = math.cos(angle_rad)
     dy = math.sin(angle_rad)
     
-    # Offset the spawn position by the length of the shotgun
     barrel_length = Settings.SPRITE.WIDTH // 2
     spawn_x = center_x + (dx * barrel_length)
     spawn_y = center_y + (dy * barrel_length)
@@ -125,14 +128,14 @@ def spawn_bullet(world: dict, spatial_grid: dict, center_x: float, center_y: flo
     bullet = {
         SpacialComponent: SpacialComponent(
             grid_pos=(grid_x, grid_y),
-            rect=pygame.Rect(spawn_x, spawn_y, 4, 4) # Small 4x4 bullet
+            rect=pygame.Rect(spawn_x, spawn_y, 4, 4) 
         ),
-        RenderComponent: RenderComponent(color=(255, 255, 0)), # Yellow bullet
-        ProjectileComponent: ProjectileComponent(dx=dx, dy=dy, speed=300.0, damage=1)
+        RenderComponent: RenderComponent(color=(255, 255, 0)), 
+        # Inject the dynamic speed and damage here!
+        ProjectileComponent: ProjectileComponent(dx=dx, dy=dy, speed=speed, damage=damage)
     }
 
     world[new_id] = bullet
     Misc.register_entity_in_grid(new_id, (grid_x, grid_y), spatial_grid)
     
     return new_id
-
