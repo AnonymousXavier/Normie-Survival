@@ -1,5 +1,6 @@
 from ECS.Components import ProjectileComponent, SpacialComponent, EnemyTag, HealthComponent
 from Globals import Misc
+from ECS import Factories
 
 def process(world: dict, spatial_grid: dict):
     entities_to_delete = set()
@@ -31,7 +32,10 @@ def process(world: dict, spatial_grid: dict):
                                 entities_to_delete.add(proj_id)
                                 
                                 # Mark enemy if dead
+                                # Inside the death check in CollisionSystem.py
                                 if world[target_id][HealthComponent].hp <= 0:
+                                    death_pos = world[target_id][SpacialComponent].grid_pos
+                                    Factories.spawn_gem(world, spatial_grid, death_pos[0], death_pos[1])
                                     entities_to_delete.add(target_id)
 
     # Clean up entities

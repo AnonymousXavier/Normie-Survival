@@ -3,7 +3,7 @@ import pygame
 from Core import States
 from ECS import Factories
 from ECS.Components import SpacialComponent
-from ECS.Systems import AINavigationSystem, CollisionSystem, AimingSystem, WeaponSystem,CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, OrbitalSystem, ProjectileSystem, RenderingSystem, DebugSystem, MovementSystem
+from ECS.Systems import AINavigationSystem, CollectionSystem, CollisionSystem, AimingSystem, PickUpSystem, WeaponSystem,CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, OrbitalSystem, ProjectileSystem, RenderingSystem, DebugSystem, MovementSystem
 from Globals import Settings
 
 class Main:
@@ -49,9 +49,11 @@ class Main:
 		MovementSystem.process(States.world, States.spatial_grid, events, dt)
 		ProjectileSystem.process(States.world, States.spatial_grid, States.camera, dt)
 		WeaponSystem.process(States.world, States.spatial_grid, dt)
+		CollectionSystem.process(States.world, States.spatial_grid)
 
 		# Run collisions after movement but before spawning new things
 		CollisionSystem.process(States.world, States.spatial_grid)
+		PickUpSystem.process(States.world, States.spatial_grid)
 
 		EnemySpawner.process(States.world, States.spatial_grid)
 		OrbitalSystem.process(States.world, States.spatial_grid, dt)

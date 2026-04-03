@@ -5,7 +5,8 @@ import math
 from Core import States
 from Globals import Settings, Misc, Enums
 from ECS.Components import (EnemyTag, FacingDirectionComponent, HealthComponent, PowerUpTag, SpacialComponent, RenderComponent, 
-	PlayerInputTag, StalkerComponent, RotationComponent, CooldownComponent, ProjectileComponent, OrbitalComponent)
+	PlayerInputTag, StalkerComponent, RotationComponent, CooldownComponent, ProjectileComponent, OrbitalComponent,
+	CollectorComponent, ExperienceGemComponent)
 
 
 def new_camera(cams_topleft: tuple, cams_size: tuple, target_id: int):
@@ -28,7 +29,8 @@ def spawn_player(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
 		),
 		RenderComponent: RenderComponent(color=Settings.DEBUG.PLAYER_COLOR),
 		PlayerInputTag: PlayerInputTag(),
-		FacingDirectionComponent: FacingDirectionComponent()
+		FacingDirectionComponent: FacingDirectionComponent(),
+		CollectorComponent: CollectorComponent()
 	}
 
 	world[new_id] = player
@@ -74,6 +76,23 @@ def spawn_enemy(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
 	Misc.register_entity_in_grid(new_id, (grid_x, grid_y), spatial_grid)
 
 	return new_id
+
+def spawn_gem(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
+    x, y = grid_x * Settings.SPRITE.WIDTH, grid_y * Settings.SPRITE.HEIGHT
+    new_id = States.NEXT_ENTITY_ID
+    States.NEXT_ENTITY_ID += 1
+
+    gem = {
+        SpacialComponent: SpacialComponent(
+            grid_pos=(grid_x, grid_y),
+            rect=pygame.Rect(x + 4, y + 4, 8, 8) # Smaller than a full tile
+        ),
+        RenderComponent: RenderComponent(color=(0, 255, 255)), # Cyan gem
+        ExperienceGemComponent: ExperienceGemComponent(value=1)
+    }
+
+    world[new_id] = gem
+    Misc.register_entity_in_grid(new_id, (grid_x, grid_y), spatial_grid)
 
 
 	

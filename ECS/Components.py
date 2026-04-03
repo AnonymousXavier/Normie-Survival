@@ -93,6 +93,20 @@ class WeaponStats:
 class HealthComponent:
     hp: int = 1
 
+@dataclass(kw_only=True, slots=True)
+class ExperienceGemComponent:
+    value: int = 1  # How much XP it gives
+
+@dataclass(kw_only=True, slots=True)
+class CollectorComponent:
+    range: float = 2.0  # Pickup radius in grid cells
+
+@dataclass(kw_only=True, slots=True)
+class PlayerStatsComponent:
+    xp: int = 0
+    level: int = 1
+    xp_to_next_level: int = 5
+
 class PlayerInputTag: 
 	pass
 class FloorTag: 
@@ -101,3 +115,5 @@ class EnemyTag:
 	pass
 class PowerUpTag:
 	pass
+class PickupTag:
+    pass
