@@ -3,8 +3,8 @@ import pygame
 from Core import States
 from ECS import Factories
 from ECS.Components import SpacialComponent
-from ECS.Systems import AINavigationSystem, AimingSystem, CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, PowerUpsSystem, RenderingSystem, DebugSystem, MovementSystem
-from Globals import Settings, Enums
+from ECS.Systems import AINavigationSystem, AimingSystem, WeaponSystem,CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, OrbitalSystem, ProjectileSystem, RenderingSystem, DebugSystem, MovementSystem
+from Globals import Settings
 
 class Main:
 	def __init__(self) -> None:
@@ -12,10 +12,9 @@ class Main:
 		States.camera = Factories.new_camera((0, 0), Settings.CAMERA.SIZE, States.PLAYER_ID)
 
 		for _ in range(2):
-			PowerUpsSystem.add_powerup(Enums.POWERUPS.SHOTGUN, States.world, States.spatial_grid)
+			Factories.spawn_shotgun(States.world, States.spatial_grid, States.PLAYER_ID)
 
 	def draw(self):
-		# FlowFieldSystem.draw(self.window)
 		Settings.window.fill(Settings.COLOURS.BLACK)
 		RenderingSystem.process(
 			surface=Settings.window, 
@@ -42,11 +41,16 @@ class Main:
 		dt = Settings.WINDOW.CLOCK.tick(Settings.UPDATE.FPS) / 1000
 
 		InputSystem.process(States.world, events)
-		AimingSystem.process(States.world, States.camera)
+		AimingSystem.process(States.world, States.spatial_grid, States.camera)
+
 		AINavigationSystem.process(States.world, events)
+
 		MovementSystem.process(States.world, States.spatial_grid, events, dt)
+		ProjectileSystem.process(States.world, States.spatial_grid, States.camera, dt)
+		WeaponSystem.process(States.world, States.spatial_grid, dt)
+
 		EnemySpawner.process(States.world, States.spatial_grid)
-		PowerUpsSystem.process(States.world, States.spatial_grid)
+		OrbitalSystem.process(States.world, States.spatial_grid, dt)
 
 		CameraSystem.process(States.world, States.camera, dt)
 		FlowFieldSystem.flow_field = FlowFieldSystem.create_flow_field(States.world[States.PLAYER_ID][SpacialComponent].grid_pos)

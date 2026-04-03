@@ -1,10 +1,11 @@
 import pygame
+import math
 
 
 from Core import States
 from Globals import Settings, Misc, Enums
-from ECS.Components import (EnemyTag, PowerUpComponent, PowerUpTag, SpacialComponent, RenderComponent, 
-	PlayerInputTag, StalkerComponent, RotationComponent)
+from ECS.Components import (EnemyTag, FacingDirectionComponent, PowerUpComponent, PowerUpTag, SpacialComponent, RenderComponent, 
+	PlayerInputTag, StalkerComponent, RotationComponent, CooldownComponent, ProjectileComponent, OrbitalComponent)
 
 
 def new_camera(cams_topleft: tuple, cams_size: tuple, target_id: int):
@@ -27,6 +28,7 @@ def spawn_player(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
 		),
 		RenderComponent: RenderComponent(color=Settings.DEBUG.PLAYER_COLOR),
 		PlayerInputTag: PlayerInputTag(),
+		FacingDirectionComponent: FacingDirectionComponent()
 	}
 
 	world[new_id] = player
@@ -72,34 +74,65 @@ def spawn_enemy(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
 
 	return new_id
 
-def spawn_shotgun(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
-	x, y = grid_x * Settings.SPRITE.WIDTH, grid_y * Settings.SPRITE.HEIGHT
+def spawn_shotgun(world: dict, spatial_grid: dict, target_id: int):
+    new_id = States.NEXT_ENTITY_ID
+    States.NEXT_ENTITY_ID += 1
 
-	new_id = States.NEXT_ENTITY_ID
-	States.NEXT_ENTITY_ID += 1
+    # Placeholder sprite logic (gray box with black barrel)
+    placeholder_surface = pygame.Surface(Settings.SPRITE.SIZE, pygame.SRCALPHA)
+    placeholder_surface.fill((100, 100, 100)) 
+    pygame.draw.rect(placeholder_surface, Settings.COLOURS.BLACK, (10, 6, 6, 4)) 
 
-	# Create a temporary surface with a "barrel" drawn on it so we can see where it aims
-	placeholder_surface = pygame.Surface(Settings.SPRITE.SIZE, pygame.SRCALPHA)
-	placeholder_surface.fill((100, 100, 100)) # Gray gun body
-	pygame.draw.rect(placeholder_surface, Settings.COLOURS.BLACK, (10, 6, 6, 4)) # Black barrel pointing right (0 degrees)
+    shotgun = {
+        SpacialComponent: SpacialComponent(
+            grid_pos=(0, 0), # The OrbitalSystem will instantly overwrite this on frame 1
+            rect=pygame.Rect(0, 0, Settings.SPRITE.WIDTH, Settings.SPRITE.HEIGHT)
+        ),
+        RenderComponent: RenderComponent(
+            color=Settings.DEBUG.PLAYER_COLOR, 
+            sprite=placeholder_surface, 
+            base_sprite=placeholder_surface 
+        ),
+        # Here are the new behavioral components!
+        OrbitalComponent: OrbitalComponent(target_id=target_id, radius=2.0, angle=0.0, spin_speed=0.0),
+        CooldownComponent: CooldownComponent(fire_rate=1.0),
+        RotationComponent: RotationComponent(),
+        PowerUpTag: PowerUpTag()
+    }
 
-	shotgun = {
-		SpacialComponent: SpacialComponent(
-			grid_pos=(grid_x, grid_y),
-			rect=pygame.Rect(x, y, Settings.SPRITE.WIDTH, Settings.SPRITE.HEIGHT)
-		),
-		RenderComponent: RenderComponent(
-			color=Settings.DEBUG.PLAYER_COLOR, 
-			sprite=placeholder_surface, 
-			base_sprite=placeholder_surface
-		),
-		PowerUpComponent: PowerUpComponent(_id=Enums.POWERUPS.SHOTGUN),
-		PowerUpTag: PowerUpTag(),
-		RotationComponent: RotationComponent() 
-	}
+    world[new_id] = shotgun
+    Misc.register_entity_in_grid(new_id, (0, 0), spatial_grid)
 
-	world[new_id] = shotgun
-	Misc.register_entity_in_grid(new_id, (grid_x, grid_y), spatial_grid)
+    return new_id
 
-	return new_id
+def spawn_bullet(world: dict, spatial_grid: dict, center_x: float, center_y: float, angle_deg: float):
+    angle_rad = math.radians(-angle_deg) 
+    
+    dx = math.cos(angle_rad)
+    dy = math.sin(angle_rad)
+    
+    # Offset the spawn position by the length of the shotgun
+    barrel_length = Settings.SPRITE.WIDTH // 2
+    spawn_x = center_x + (dx * barrel_length)
+    spawn_y = center_y + (dy * barrel_length)
+
+    grid_x = int(spawn_x // Settings.SPRITE.WIDTH)
+    grid_y = int(spawn_y // Settings.SPRITE.HEIGHT)
+
+    new_id = States.NEXT_ENTITY_ID
+    States.NEXT_ENTITY_ID += 1
+
+    bullet = {
+        SpacialComponent: SpacialComponent(
+            grid_pos=(grid_x, grid_y),
+            rect=pygame.Rect(spawn_x, spawn_y, 4, 4) # Small 4x4 bullet
+        ),
+        RenderComponent: RenderComponent(color=(255, 255, 0)), # Yellow bullet
+        ProjectileComponent: ProjectileComponent(dx=dx, dy=dy, speed=300.0, damage=1)
+    }
+
+    world[new_id] = bullet
+    Misc.register_entity_in_grid(new_id, (grid_x, grid_y), spatial_grid)
+    
+    return new_id
 

@@ -1,49 +1,59 @@
-import pygame
 import math
-
-from ECS.Components import SpacialComponent, RenderComponent, RotationComponent, PowerUpTag
+import pygame
+from ECS.Components import SpacialComponent, RenderComponent, RotationComponent, PowerUpTag, EnemyTag
 from ECS.Systems import CameraSystem
 from Globals import Misc
 
-def process(world: dict, camera: dict):
-	mx, my = pygame.mouse.get_pos()
-	
-	cam_rect = camera[SpacialComponent].rect
-	cam_boundary = CameraSystem.get_boundary_of(camera)
-	render_data = Misc.get_camera_rendering_data(cam_boundary)
-	
-	scale = render_data["size"][0] / cam_boundary["world_size"][0]
-	ox, oy = render_data["offset"]
-	
-	# Convert Screen Space -> World Space
-	world_mx = ((mx - ox) / scale) + cam_rect.left
-	world_my = ((my - oy) / scale) + cam_rect.top
-	
-	# Process Aiming
-	for obj_id in world:
-		obj = world[obj_id]
-		if PowerUpTag in obj and RotationComponent in obj and RenderComponent in obj:
-			center_x = obj[SpacialComponent].rect.centerx
-			center_y = obj[SpacialComponent].rect.centery
-			
-			dx = world_mx - center_x
-			dy = world_my - center_y
-			
-			angle_rad = math.atan2(-dy, dx) 
-			angle_deg = math.degrees(angle_rad)
-			
-			current_angle = obj[RotationComponent].angle
-			
-			# Only rotate if angle changed by > 2 degrees
-			if abs(current_angle - angle_deg) > 2.0:
-				obj[RotationComponent].angle = angle_deg
-				
-				base_sprite = obj[RenderComponent].base_sprite
-				if base_sprite:
-					rotated_sprite = pygame.transform.rotate(base_sprite, angle_deg)
-					
-					# Rotating changes the image size. Re-center it!
-					new_rect = rotated_sprite.get_rect(center=obj[SpacialComponent].rect.center)
-					obj[SpacialComponent].rect.size = new_rect.size
-					
-					obj[RenderComponent].sprite = rotated_sprite
+def process(world: dict, spatial_grid: dict, camera: dict):
+    # Grab everything on screen
+    cam_boundary = CameraSystem.get_boundary_of(camera)
+    visible_ids = Misc.get_entities_on_screen(spatial_grid, cam_boundary)
+    
+    for obj_id in list(world.keys()):
+        obj = world[obj_id]
+        if PowerUpTag in obj and RotationComponent in obj and RenderComponent in obj:
+            
+            # Get the weapons position
+            gx = obj[SpacialComponent].rect.centerx
+            gy = obj[SpacialComponent].rect.centery
+            
+            target_enemy_id = None
+            closest_dist_sq = float('inf')
+
+            # Find closest enemy
+            for v_id in visible_ids:
+                if EnemyTag in world[v_id] and SpacialComponent in world[v_id]:
+                    ex = world[v_id][SpacialComponent].rect.centerx
+                    ey = world[v_id][SpacialComponent].rect.centery
+                    
+                    dx = ex - gx
+                    dy = ey - gy
+                    dist_sq = (dx * dx) + (dy * dy) 
+                    
+                    if dist_sq < closest_dist_sq:
+                        closest_dist_sq = dist_sq
+                        target_enemy_id = v_id
+
+            # Only rotate if we actually found a target
+            if target_enemy_id:
+                ex = world[target_enemy_id][SpacialComponent].rect.centerx
+                ey = world[target_enemy_id][SpacialComponent].rect.centery
+                
+                aim_dx = ex - gx
+                aim_dy = ey - gy
+                
+                angle_rad = math.atan2(-aim_dy, aim_dx)
+                angle_deg = math.degrees(angle_rad)
+
+                current_angle = obj[RotationComponent].angle
+                
+                # Only re-render if the angle shifted enough to save CPU
+                if abs(current_angle - angle_deg) > 2.0:
+                    obj[RotationComponent].angle = angle_deg
+                    
+                    base_sprite = obj[RenderComponent].base_sprite
+                    if base_sprite:
+                        rotated_sprite = pygame.transform.rotate(base_sprite, angle_deg)
+                        new_rect = rotated_sprite.get_rect(center=obj[SpacialComponent].rect.center)
+                        obj[SpacialComponent].rect.size = new_rect.size
+                        obj[RenderComponent].sprite = rotated_sprite

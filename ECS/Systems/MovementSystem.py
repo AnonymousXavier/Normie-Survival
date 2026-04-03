@@ -1,4 +1,4 @@
-from ECS.Components import SpacialComponent, VelocityComponent
+from ECS.Components import SpacialComponent, VelocityComponent, FacingDirectionComponent
 from Globals import Enums, Settings, Misc
 
 frame = 0
@@ -19,6 +19,11 @@ def process(world: dict, spatial_grid: dict, global_event: list, delta: float):
 
                     tx, ty = nx * Settings.SPRITE.WIDTH, ny * Settings.SPRITE.HEIGHT
                     world[obj_id][VelocityComponent] = VelocityComponent(target=(tx, ty), position=world[obj_id][SpacialComponent].rect.topleft, speed=Settings.GAME.PLAYER_SPEED)
+
+                    if dx != 0 or dy != 0:
+                        if FacingDirectionComponent in obj:
+                            obj[FacingDirectionComponent].dx = dx
+                            obj[FacingDirectionComponent].dy = dy
 
                     move_entity_on_spatial_grid(obj_id, (nx, ny), world, spatial_grid)
 
