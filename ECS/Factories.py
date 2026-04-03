@@ -4,7 +4,7 @@ import math
 
 from Core import States
 from Globals import Settings, Misc, Enums
-from ECS.Components import (EnemyTag, FacingDirectionComponent, HealthComponent, PowerUpTag, SpacialComponent, RenderComponent, 
+from ECS.Components import (EnemyTag, FacingDirectionComponent, HealthComponent, PlayerStatsComponent, PowerUpTag, SpacialComponent, RenderComponent, 
 	PlayerInputTag, StalkerComponent, RotationComponent, CooldownComponent, ProjectileComponent, OrbitalComponent,
 	CollectorComponent, ExperienceGemComponent)
 
@@ -30,7 +30,8 @@ def spawn_player(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
 		RenderComponent: RenderComponent(color=Settings.DEBUG.PLAYER_COLOR),
 		PlayerInputTag: PlayerInputTag(),
 		FacingDirectionComponent: FacingDirectionComponent(),
-		CollectorComponent: CollectorComponent()
+		CollectorComponent: CollectorComponent(),
+		PlayerStatsComponent: PlayerStatsComponent()
 	}
 
 	world[new_id] = player

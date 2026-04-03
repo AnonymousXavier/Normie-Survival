@@ -1,28 +1,39 @@
 from Core import States
-from ECS.Components import SpacialComponent, ExperienceGemComponent, PlayerStatsComponent
+from ECS.Components import ExperienceGemComponent, SpacialComponent, CollectorComponent, PlayerStatsComponent
 from Globals import Misc
 
-def process(world: dict, spatial_grid: dict):
-    player = world[States.PLAYER_ID]
-    player_grid_pos = player[SpacialComponent].grid_pos
-    player_stats = player.get(PlayerStatsComponent)
-
-    if not player_stats:
-        return
-
-    # 2. Check the player's current cell in the spatial grid
-    if player_grid_pos in spatial_grid:
-        # We use a copy of the list to avoid "dictionary size changed during iteration" errors
-        for entity_id in list(spatial_grid[player_grid_pos]):
-            entity_components = world.get(entity_id)
-            
-            if entity_components and ExperienceGemComponent in entity_components:
-                # Gaining the XP
-                gem_value = entity_components[ExperienceGemComponent].value
-                player_stats.xp += gem_value
+def process(world: dict, spatial_grid: dict):    
+    player_obj = world[States.PLAYER_ID]
+    
+    # Safety check for required components
+    if CollectorComponent in player_obj and PlayerStatsComponent in player_obj:
+        p_pos = player_obj[SpacialComponent].grid_pos
+        p_stats = player_obj[PlayerStatsComponent]
+        p_range = player_obj[CollectorComponent].range
+        
+        r = int(p_range)
+        for dx in range(-r, r + 1):
+            for dy in range(-r, r + 1):
+                cell = (p_pos[0] + dx, p_pos[1] + dy)
                 
-                # Cleanup: Remove from grid and world
-                Misc.remove_entity_from_grid(entity_id, player_grid_pos, spatial_grid)
-                del world[entity_id]
-                
-                print(f"XP Gained: {gem_value} | Total: {player_stats.xp}/{player_stats.xp_to_next_level}")
+                if cell in spatial_grid:
+                    # list() here is good; it protects against spatial_grid changes
+                    for entity_id in list(spatial_grid[cell]):
+                        target_entity = world.get(entity_id)
+                        if target_entity and ExperienceGemComponent in target_entity:
+                            # Add XP
+                            p_stats.xp += target_entity[ExperienceGemComponent].value
+                            
+                            # Cleanup
+                            Misc.remove_entity_from_grid(entity_id, cell, spatial_grid)
+                            del world[entity_id]
+                            
+                            # Level check
+                            if p_stats.xp >= p_stats.xp_to_next_level:
+                                level_up(p_stats)
+
+def level_up(stats):
+    stats.level += 1
+    stats.xp = 0
+    stats.xp_to_next_level = int(stats.xp_to_next_level * 1.5)
+    print(f"LEVEL UP! Reached Level {stats.level}")

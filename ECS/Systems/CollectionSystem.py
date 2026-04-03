@@ -2,7 +2,7 @@ from ECS.Components import ExperienceGemComponent, SpacialComponent, CollectorCo
 from Globals import Misc
 
 def process(world: dict, spatial_grid: dict):
-    for player_id, obj in world.items():
+    for obj in list(world.values()):
         if CollectorComponent in obj and PlayerStatsComponent in obj:
             p_pos = obj[SpacialComponent].grid_pos
             p_stats = obj[PlayerStatsComponent]
