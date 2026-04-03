@@ -42,10 +42,19 @@ class VelocityComponent:
 class PathFindingComponent:
 	path: Optional[list] = field(default_factory=list)
 
+@dataclass(kw_only=True)
+class PowerUpComponent:
+	_id: int
+
+@dataclass(kw_only=True)
+class RotationComponent:
+	angle = 90
 
 class PlayerInputTag: 
 	pass
 class FloorTag: 
 	pass
 class EnemyTag: 
+	pass
+class PowerUpTag:
 	pass

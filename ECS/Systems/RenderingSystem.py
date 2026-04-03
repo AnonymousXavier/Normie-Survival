@@ -1,4 +1,4 @@
-from ECS.Components import SpacialComponent, RenderComponent
+from ECS.Components import PowerUpComponent, SpacialComponent, RenderComponent
 from ECS.Systems import CameraSystem
 
 import pygame
@@ -19,7 +19,7 @@ def process(surface: pygame.Surface, world: dict, spatial_grid: dict,  camera:di
 def draw_game_entities(world: dict, spatial_grid: dict, cam_boundary: dict, camera_rect):
 	cbw, cbh = cam_boundary["world_size"]
 
-	visible_entities = Misc.get_entities_on_screen(world, spatial_grid, cam_boundary)
+	visible_entities = Misc.get_entities_on_screen(spatial_grid, cam_boundary)
 	sorted_entities = sorted(
 		visible_entities,
 		key=lambda obj_id: world[obj_id][RenderComponent].z_index
@@ -38,5 +38,8 @@ def draw_game_entities(world: dict, spatial_grid: dict, cam_boundary: dict, came
 				render_surface.blit(obj[RenderComponent].sprite, render_rect)
 			else:
 				pygame.draw.rect(render_surface, obj[RenderComponent].color, render_rect)
+
+			if PowerUpComponent in obj:
+				print(obj_id)
 
 	return render_surface

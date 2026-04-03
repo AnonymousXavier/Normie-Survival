@@ -34,13 +34,12 @@ def move_towards(position: tuple, target_position: tuple, speed: float):
 
 	return nx, ny
 
-
 def lerp(start: float, end: float, speed: float):
 	if abs(speed) > abs(round(end - start)): 
 		return end
 	return start + round(end - start) * speed
 
-def get_entities_on_screen(world: dict, spatial_grid: dict, cam_boundary: dict):
+def get_entities_on_screen(spatial_grid: dict, cam_boundary: dict):
 	
 	cam_left, cam_top = cam_boundary["left"], cam_boundary["top"]
 	cam_right, cam_bottom = cam_boundary["right"], cam_boundary["bottom"]

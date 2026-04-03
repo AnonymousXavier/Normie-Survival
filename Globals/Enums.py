@@ -6,3 +6,6 @@ class DIRECTIONS:
 
 class EVENT_TYPES:
 	MOVEMENT_INTENT = 0
+
+class POWERUPS:
+	SHOTGUN = 0

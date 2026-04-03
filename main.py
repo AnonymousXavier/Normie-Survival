@@ -3,14 +3,16 @@ import pygame
 from Core import States
 from ECS import Factories
 from ECS.Components import SpacialComponent
-from ECS.Systems import AINavigationSystem, CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, RenderingSystem, DebugSystem, MovementSystem
-from Globals import Settings
+from ECS.Systems import AINavigationSystem, CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, PowerUpsSystem, RenderingSystem, DebugSystem, MovementSystem
+from Globals import Settings, Enums
 
 class Main:
 	def __init__(self) -> None:
 		States.PLAYER_ID = Factories.spawn_player(States.world, States.spatial_grid, 0, 0)
 		States.camera = Factories.new_camera((0, 0), Settings.CAMERA.SIZE, States.PLAYER_ID)
 
+		for _ in range(2):
+			PowerUpsSystem.add_powerup(Enums.POWERUPS.SHOTGUN, States.world, States.spatial_grid)
 
 	def draw(self):
 		# FlowFieldSystem.draw(self.window)
@@ -43,6 +45,7 @@ class Main:
 		AINavigationSystem.process(States.world, events)
 		MovementSystem.process(States.world, States.spatial_grid, events, dt)
 		EnemySpawner.process(States.world, States.spatial_grid)
+		PowerUpsSystem.process(States.world, States.spatial_grid)
 
 		CameraSystem.process(States.world, States.camera, dt)
 		FlowFieldSystem.flow_field = FlowFieldSystem.create_flow_field(States.world[States.PLAYER_ID][SpacialComponent].grid_pos)
@@ -53,7 +56,7 @@ class Main:
 		while States.GAME_RUNNING:
 			self.update()
 			self.draw()
-			if Settings.WINDOW.DEBUG:
+			if Settings.DEBUG.ENABLED:
 				self.handle_debug()
 			
 
