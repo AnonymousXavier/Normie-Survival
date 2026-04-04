@@ -3,7 +3,7 @@ import pygame
 from Core import States
 from ECS import Factories
 from ECS.Components import SpacialComponent
-from ECS.Systems import AINavigationSystem, CollectionSystem, CollisionSystem, AimingSystem, DamageSystem, HitboxSystem, PickUpSystem, UISystem, WeaponSystem,CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, OrbitalSystem, ProjectileSystem, RenderingSystem, DebugSystem, MovementSystem
+from ECS.Systems import AINavigationSystem, AOESystem, CollectionSystem, CollisionSystem, AimingSystem, DamageSystem, HitboxSystem, PickUpSystem, UISystem, WeaponSystem,CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, OrbitalSystem, ProjectileSystem, RenderingSystem, DebugSystem, MovementSystem
 from Globals import Settings, Misc
 
 visible_entities = []
@@ -50,6 +50,8 @@ class Main:
 		InputSystem.process(States.world, events)
 
 		if not States.IS_LEVELING_UP:
+			States.GAME_TIME += dt
+			
 			AimingSystem.process(States.world, States.spatial_grid, States.camera)
 
 			AINavigationSystem.process(States.world, events)
@@ -59,6 +61,7 @@ class Main:
 
 			ProjectileSystem.process(States.world, States.spatial_grid, States.camera, dt)
 			WeaponSystem.process(States.world, States.spatial_grid, dt)
+			AOESystem.process(States.world, States.spatial_grid, dt)
 			CollectionSystem.process(States.world, States.spatial_grid)
 
 			# Run collisions after movement but before spawning new things

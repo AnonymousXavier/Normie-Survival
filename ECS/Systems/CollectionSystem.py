@@ -1,7 +1,7 @@
 from Core import States
 from ECS.Components import ExperienceGemComponent, SpacialComponent, CollectorComponent, PlayerStatsComponent
 from Globals import Misc
-from ECS import Factories # <-- Added missing import
+from ECS import Factories 
 
 def process(world: dict, spatial_grid: dict):    
     if States.PLAYER_ID not in world:

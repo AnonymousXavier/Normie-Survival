@@ -13,6 +13,7 @@ PLAYER_ID = 1
 
 GAME_RUNNING = True
 IS_LEVELING_UP = False
+GAME_TIME = 0.0
 
 
 # The single source of truth for all shotguns

@@ -86,21 +86,31 @@ def spawn_enemy(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
 
 	return new_id
 
-def spawn_gem(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
-    x, y = grid_x * Settings.SPRITE.WIDTH, grid_y * Settings.SPRITE.HEIGHT
+def spawn_gem(world: dict, spatial_grid: dict, x_float: float, y_float: float, value: int = 1):
+    # Calculate precise pixel position
+    x = x_float * Settings.SPRITE.WIDTH
+    y = y_float * Settings.SPRITE.HEIGHT
+
+    w, h = Settings.GAME.XP_GEM_SIZE
+    # Derive the integer grid coordinates for the spatial_grid key
+    grid_x = int(x_float)
+    grid_y = int(y_float)
+
     new_id = States.NEXT_ENTITY_ID
     States.NEXT_ENTITY_ID += 1
 
     gem = {
         SpacialComponent: SpacialComponent(
             grid_pos=(grid_x, grid_y),
-            rect=pygame.Rect(x + 4, y + 4, 8, 8) # Smaller than a full tile
+            # Use round() here to ensure the Rect is valid for Pygame
+            rect=pygame.Rect((round(x + w//2), round(y + 4)), (w, h))
         ),
-        RenderComponent: RenderComponent(color=(0, 255, 255)), # Cyan gem
-        ExperienceGemComponent: ExperienceGemComponent(value=1)
+        RenderComponent: RenderComponent(color=(0, 255, 255)),
+        ExperienceGemComponent: ExperienceGemComponent(value=value)
     }
 
     world[new_id] = gem
+    # Always register using the integer grid_pos
     Misc.register_entity_in_grid(new_id, (grid_x, grid_y), spatial_grid)
 
 def spawn_shotgun(world: dict, spatial_grid: dict, target_id: int, start_angle: float = 0.0, spin_speed: float = 0.0):

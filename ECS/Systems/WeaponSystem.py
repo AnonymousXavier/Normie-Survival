@@ -5,9 +5,7 @@ from Core import States  # Import States to access the global stats
 def process(world: dict, spatial_grid: dict, delta: float):
     stats = States.global_shotgun_stats  # Grab the global buff state
     
-    for obj_id in list(world.keys()): 
-        obj = world[obj_id]
-        
+    for obj in list(world.values()): 
         if PowerUpTag in obj and CooldownComponent in obj and RotationComponent in obj:
 
             obj[CooldownComponent].fire_rate = stats.fire_rate

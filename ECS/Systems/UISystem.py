@@ -55,10 +55,28 @@ def process(world: dict, surface: pygame.Surface):
 
 def apply_upgrade(action: dict):
     stats = States.global_shotgun_stats
+    player = States.world[States.PLAYER_ID]
+    
+    # Passive upgrades
+    stats = States.global_shotgun_stats
     if action["buff"] == "projectile":
         stats.projectile_count += 1
     elif action["buff"] == "damage":
         stats.damage += 1
     elif action["buff"] == "fire_rate":
-        stats.fire_rate = max(0.1, stats.fire_rate - 0.1) # Lower is faster
+        stats.fire_rate = max(0.1, stats.fire_rate - 0.1) 
+
+    # Active Upgrades
+    if action["buff"] == "aoe":
+        # Add AOE, remove Shield if it exists to force the choice
+        if ShieldComponent in player: del player[ShieldComponent]
+        player[AOEComponent] = AOEComponent()
+        print("AOE Pulse Active!")
+        
+    elif action["buff"] == "shield":
+        # Add Shield, remove AOE if it exists
+        if AOEComponent in player: del player[AOEComponent]
+        player[ShieldComponent] = ShieldComponent()
+        print("Shield Generator Active!")
+
     print(f"Applied Buff: {action['buff']}!")

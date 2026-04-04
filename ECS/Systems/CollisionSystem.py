@@ -1,3 +1,6 @@
+from random import randint
+
+from Core import States
 from ECS.Components import ProjectileComponent, SpacialComponent, EnemyTag, HealthComponent
 from Globals import Misc
 from ECS import Factories
@@ -32,10 +35,19 @@ def process(world: dict, spatial_grid: dict):
                                 entities_to_delete.add(proj_id)
                                 
                                 # Mark enemy if dead
-                                # Inside the death check in CollisionSystem.py
+
                                 if world[target_id][HealthComponent].hp <= 0:
                                     death_pos = world[target_id][SpacialComponent].grid_pos
-                                    Factories.spawn_gem(world, spatial_grid, death_pos[0], death_pos[1])
+                                    
+                                    num_gems = 1
+                                    gem_value = 1 + int(States.GAME_TIME // 120) 
+
+                                    for _ in range(num_gems):
+                                        # Add a tiny bit of random offset so the gems don't stack perfectly
+                                        rx = death_pos[0] + (randint(-5, 5) / 10.0)
+                                        ry = death_pos[1] + (randint(-5, 5) / 10.0)
+                                        Factories.spawn_gem(world, spatial_grid, rx, ry, value=gem_value)
+                                        
                                     entities_to_delete.add(target_id)
 
                                 break

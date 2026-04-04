@@ -115,7 +115,7 @@ class ExperienceGemComponent:
 
 @dataclass(kw_only=True, slots=True)
 class CollectorComponent:
-    range: float = 0.0  # Pickup radius in grid cells
+    range: float = 1.0  # Pickup radius in grid cells
 
 @dataclass(kw_only=True, slots=True)
 class PlayerStatsComponent:
@@ -131,6 +131,19 @@ class UIButtonComponent:
     color: tuple = (50, 50, 50)
     hover_color: tuple = (100, 100, 100)
     is_hovered: bool = False
+
+@dataclass(kw_only=True, slots=True)
+class AOEComponent:
+    radius: float = 2.0  # In grid cells
+    damage: int = 2
+    cooldown: float = 3.0
+    timer: float = 0.0
+
+@dataclass(kw_only=True, slots=True)
+class ShieldComponent:
+    active: bool = True
+    recharge_delay: float = 5.0
+    timer: float = 0.0
 
 class UITag:
     pass
