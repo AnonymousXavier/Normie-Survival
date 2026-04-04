@@ -18,8 +18,6 @@ class Main:
 		Factories.spawn_shotgun(States.world, States.spatial_grid, States.PLAYER_ID, start_angle=180.0)
 
 	def draw(self):
-		
-
 		Settings.window.fill(Settings.COLOURS.BLACK)
 		RenderingSystem.process(
 			surface=Settings.window, 

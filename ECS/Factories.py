@@ -185,3 +185,6 @@ def spawn_upgrade_menu(world: dict):
                 action=upg["action"]
             )
         }
+
+        print(f" Menu Spawned with id: {new_id}")
+    print("spawned menu")

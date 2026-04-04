@@ -1,6 +1,7 @@
 from Core import States
 from ECS.Components import ExperienceGemComponent, SpacialComponent, CollectorComponent, PlayerStatsComponent
 from Globals import Misc
+from ECS import Factories
 
 def process(world: dict, spatial_grid: dict):    
     player_obj = world[States.PLAYER_ID]
@@ -41,5 +42,4 @@ def level_up(stats, world):
     
     # FREEZE THE GAME AND SPAWN MENU
     States.IS_LEVELING_UP = True
-    from ECS import Factories
     Factories.spawn_upgrade_menu(world)

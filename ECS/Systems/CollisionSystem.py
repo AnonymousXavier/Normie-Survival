@@ -19,8 +19,8 @@ def process(world: dict, spatial_grid: dict):
 
             for cell in neighbor_cells:
                 if cell in spatial_grid:
-                    for target_id in spatial_grid[cell]:
-                        # 3. Collision logic
+                    for target_id in list(spatial_grid[cell]):
+                        # Collision logic
                         if EnemyTag in world[target_id] and HealthComponent in world[target_id]:
                             enemy_rect = world[target_id][SpacialComponent].rect
                             
@@ -37,6 +37,8 @@ def process(world: dict, spatial_grid: dict):
                                     death_pos = world[target_id][SpacialComponent].grid_pos
                                     Factories.spawn_gem(world, spatial_grid, death_pos[0], death_pos[1])
                                     entities_to_delete.add(target_id)
+
+                                break
 
     # Clean up entities
     for ent_id in entities_to_delete:
