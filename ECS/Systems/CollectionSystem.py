@@ -20,6 +20,8 @@ def process(world: dict, spatial_grid: dict):
                             if ExperienceGemComponent in world.get(entity_id, {}):
                                 # Add XP
                                 p_stats.xp += world[entity_id][ExperienceGemComponent].value
+
+                                print(f"XP: {p_stats.xp} / {p_stats.xp_to_next_level}")
                                 
                                 # Remove Gem
                                 Misc.remove_entity_from_grid(entity_id, cell, spatial_grid)

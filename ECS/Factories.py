@@ -1,9 +1,8 @@
 import pygame
 import math
 
-
 from Core import States
-from Globals import Settings, Misc, Enums
+from Globals import Settings, Misc
 from ECS.Components import (EnemyTag, FacingDirectionComponent, HealthComponent, PlayerStatsComponent, PowerUpTag, SpacialComponent, RenderComponent, 
 	PlayerInputTag, StalkerComponent, RotationComponent, CooldownComponent, ProjectileComponent, OrbitalComponent,
 	CollectorComponent, ExperienceGemComponent)
@@ -76,6 +75,7 @@ def spawn_enemy(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
 	world[new_id] = enemy
 	Misc.register_entity_in_grid(new_id, (grid_x, grid_y), spatial_grid)
 
+	print(f"Spawned Enemy AT: {grid_x, grid_y}")
 	return new_id
 
 def spawn_gem(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):

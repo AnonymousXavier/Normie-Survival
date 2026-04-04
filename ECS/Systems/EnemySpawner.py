@@ -1,20 +1,28 @@
 from random import randint
+from math import sin, cos, radians
 
 from Core import States
 from ECS import Factories
-from ECS.Components import SpacialComponent
+from ECS.Components import EnemyTag, SpacialComponent
 from Globals import Settings
-
-spawned_guards = 0
 
 def process(world: dict, spatial_grid: dict):
 	global spawned_guards 
 
-	px, py = world[States.PLAYER_ID][SpacialComponent].grid_pos
-	ox, oy = randint(-1 * Settings.GAME.MAX_DISTANCE_FROM_PLAYER, Settings.GAME.MAX_DISTANCE_FROM_PLAYER + 1), randint(-1 * Settings.GAME.MAX_DISTANCE_FROM_PLAYER, Settings.GAME.MAX_DISTANCE_FROM_PLAYER + 1)
-	ex, ey = px + ox, py + oy
+	spawned_enemies = 0
+	for entity_id in world:
+		if EnemyTag in world[entity_id]:
+			spawned_enemies += 1
 
-	if spawned_guards < Settings.GAME.ALLOWABLE_NUMBER_OF_ENEMIES:
+	px, py = world[States.PLAYER_ID][SpacialComponent].grid_pos
+	angle = radians(randint(0, 359))
+	r = Settings.GAME.MAX_DISTANCE_FROM_PLAYER
+
+	ox, oy = cos(angle) * r, sin(angle) * r
+	ex, ey = round(px + ox), round(py + oy)
+
+	if spawned_enemies < Settings.GAME.ALLOWABLE_NUMBER_OF_ENEMIES_ON_SCREEN:
 		Factories.spawn_enemy(world, spatial_grid, ex, ey)
 
-		spawned_guards += 1
+	print(spawned_enemies)
+

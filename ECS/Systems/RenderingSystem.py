@@ -5,21 +5,20 @@ import pygame
 
 from Globals import Misc
 
-def process(surface: pygame.Surface, world: dict, spatial_grid: dict,  camera:dict):
+def process(surface: pygame.Surface, world: dict,  camera:dict, visible_entities: list):
 	camera_rect: pygame.Rect = camera[SpacialComponent].rect
 	cam_boundary = CameraSystem.get_boundary_of(camera)
 	
 	rendering_data = Misc.get_camera_rendering_data(cam_boundary)
 	
-	game_entities_rendered_surface = draw_game_entities(world, spatial_grid, cam_boundary, camera_rect)
+	game_entities_rendered_surface = draw_game_entities(world, cam_boundary, camera_rect, visible_entities)
 	entities_transformed_surface = pygame.transform.scale(game_entities_rendered_surface, rendering_data["size"])
 
 	surface.blit(entities_transformed_surface, rendering_data["offset"])
 
-def draw_game_entities(world: dict, spatial_grid: dict, cam_boundary: dict, camera_rect):
+def draw_game_entities(world: dict,cam_boundary: dict, camera_rect, visible_entities: list):
 	cbw, cbh = cam_boundary["world_size"]
-
-	visible_entities = Misc.get_entities_on_screen(spatial_grid, cam_boundary)
+	
 	sorted_entities = sorted(
 		visible_entities,
 		key=lambda obj_id: world[obj_id][RenderComponent].z_index
@@ -27,7 +26,8 @@ def draw_game_entities(world: dict, spatial_grid: dict, cam_boundary: dict, came
 
 	render_surface = pygame.Surface((cbw, cbh))
 	for obj_id in sorted_entities:
-		if SpacialComponent in world[obj_id]:
+
+		if SpacialComponent in world[obj_id] and RenderComponent in world[obj_id]:
 			obj = world[obj_id]
 			obj_rect = obj[SpacialComponent].rect
 			render_pos = obj_rect.left - camera_rect.left, obj_rect.top - camera_rect.top

@@ -4,7 +4,9 @@ from Core import States
 from ECS import Factories
 from ECS.Components import SpacialComponent
 from ECS.Systems import AINavigationSystem, CollectionSystem, CollisionSystem, AimingSystem, PickUpSystem, WeaponSystem,CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, OrbitalSystem, ProjectileSystem, RenderingSystem, DebugSystem, MovementSystem
-from Globals import Settings
+from Globals import Settings, Misc
+
+visible_entities = []
 
 class Main:
 	def __init__(self) -> None:
@@ -16,11 +18,13 @@ class Main:
 		Factories.spawn_shotgun(States.world, States.spatial_grid, States.PLAYER_ID, start_angle=180.0)
 
 	def draw(self):
+		
+
 		Settings.window.fill(Settings.COLOURS.BLACK)
 		RenderingSystem.process(
 			surface=Settings.window, 
 			world=States.world, 
-			spatial_grid=States.spatial_grid, 
+			visible_entities=visible_entities,
 			camera=States.camera, 
 		)
 
@@ -37,6 +41,8 @@ class Main:
 		)
 
 	def update(self):
+		global visible_entities
+
 		events = []
 
 		dt = Settings.WINDOW.CLOCK.tick(Settings.UPDATE.FPS) / 1000
@@ -61,6 +67,7 @@ class Main:
 		CameraSystem.process(States.world, States.camera, dt)
 		FlowFieldSystem.flow_field = FlowFieldSystem.create_flow_field(States.world[States.PLAYER_ID][SpacialComponent].grid_pos)
 
+		visible_entities = Misc.get_entities_on_screen(States.spatial_grid, CameraSystem.get_boundary_of(States.camera))
 		pygame.display.update()
 
 	def run(self):
