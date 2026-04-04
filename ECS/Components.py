@@ -26,12 +26,13 @@ class AnimationStateComponent:
 class AIStateComponent:
 	state: int
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, slots=True)
 class AnimationComponent:
-	frames: dict
-	current_frame: int
-	state: int
-	direction: int
+    frames: dict  # Maps ANIM_STATES to cached sprite sheets
+    current_frame: float = 0.0
+    state: int = 0
+    direction: int = 0
+    speed: float = 8.0  # Frames per second
 
 @dataclass(kw_only=True)
 class VelocityComponent:
@@ -91,8 +92,8 @@ class WeaponStats:
 
 @dataclass(kw_only=True, slots=True)
 class HealthComponent:
-    hp: int = 100
-    max_hp: int = hp
+    hp: int
+    max_hp: int
     inv_duration: float = 0.5  # Half a second of invincibility
     inv_timer: float = 0.0
 
@@ -123,6 +124,9 @@ class PlayerStatsComponent:
     level: int = 1
     xp_to_next_level: int = 5
 
+    speed: float
+    max_hp: int
+
 @dataclass(kw_only=True)
 class UIButtonComponent:
     rect: pygame.Rect
@@ -144,6 +148,14 @@ class ShieldComponent:
     active: bool = True
     recharge_delay: float = 5.0
     timer: float = 0.0
+
+@dataclass(kw_only=True, slots=True)
+class ArsenalComponent:
+    inventory: dict
+
+@dataclass(kw_only=True)
+class DeathTimerComponent:
+    time_left: float = 3.0
 
 class UITag:
     pass

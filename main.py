@@ -3,7 +3,7 @@ import pygame
 from Core import States
 from ECS import Factories
 from ECS.Components import SpacialComponent
-from ECS.Systems import AINavigationSystem, AOESystem, CollectionSystem, CollisionSystem, AimingSystem, DamageSystem, HitboxSystem, PickUpSystem, UISystem, WeaponSystem,CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, OrbitalSystem, ProjectileSystem, RenderingSystem, DebugSystem, MovementSystem
+from ECS.Systems import AINavigationSystem, AOESystem, AnimationStateSystem, CollectionSystem, CollisionSystem, AimingSystem, DamageSystem, HitboxSystem, PickUpSystem, UISystem, WeaponSystem,CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, OrbitalSystem, ProjectileSystem, RenderingSystem, DebugSystem, MovementSystem, AnimationSystem
 from Globals import Settings, Misc
 
 visible_entities = []
@@ -57,6 +57,8 @@ class Main:
 			AINavigationSystem.process(States.world, events)
 
 			MovementSystem.process(States.world, States.spatial_grid, events, dt)
+			AnimationStateSystem.process(States.world)
+			AnimationSystem.process(States.world, dt)
 			HitboxSystem.process(States.world)
 
 			ProjectileSystem.process(States.world, States.spatial_grid, States.camera, dt)
@@ -76,7 +78,6 @@ class Main:
 			FlowFieldSystem.flow_field = FlowFieldSystem.create_flow_field(States.world[States.PLAYER_ID][SpacialComponent].grid_pos)
 
 		visible_entities = Misc.get_entities_on_screen(States.spatial_grid, CameraSystem.get_boundary_of(States.camera))
-		
 
 	def run(self):
 		while States.GAME_RUNNING:

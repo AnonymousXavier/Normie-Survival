@@ -1,6 +1,6 @@
 import pygame
 from Core import States
-from ECS.Components import UIButtonComponent, UITag
+from ECS.Components import UIButtonComponent, UITag, ArsenalComponent, ShieldComponent, AOEComponent
 from Globals import Settings
 
 # Initialize font
@@ -54,11 +54,10 @@ def process(world: dict, surface: pygame.Surface):
             del world[u_id]
 
 def apply_upgrade(action: dict):
-    stats = States.global_shotgun_stats
     player = States.world[States.PLAYER_ID]
+    stats = player[ArsenalComponent].inventory.get("shotgun")
     
     # Passive upgrades
-    stats = States.global_shotgun_stats
     if action["buff"] == "projectile":
         stats.projectile_count += 1
     elif action["buff"] == "damage":

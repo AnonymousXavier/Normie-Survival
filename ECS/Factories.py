@@ -2,10 +2,10 @@ import pygame
 import math
 
 from Core import States
-from Globals import Settings, Misc
-from ECS.Components import (EnemyTag, FacingDirectionComponent, HealthComponent, HitboxComponent, PlayerStatsComponent, PowerUpTag, SpacialComponent, RenderComponent, 
+from Globals import Settings, Misc, Cache, Enums
+from ECS.Components import (ArsenalComponent, EnemyTag, FacingDirectionComponent, HealthComponent, HitboxComponent, PlayerStatsComponent, PowerUpTag, SpacialComponent, RenderComponent, 
 	PlayerInputTag, StalkerComponent, RotationComponent, CooldownComponent, ProjectileComponent, OrbitalComponent,
-	CollectorComponent, ExperienceGemComponent)
+	CollectorComponent, ExperienceGemComponent, AnimationComponent, WeaponStats)
 from ECS.Components import UITag, UIButtonComponent
 
 def new_camera(cams_topleft: tuple, cams_size: tuple, target_id: int):
@@ -30,11 +30,29 @@ def spawn_player(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
 		PlayerInputTag: PlayerInputTag(),
 		FacingDirectionComponent: FacingDirectionComponent(),
 		CollectorComponent: CollectorComponent(),
-		PlayerStatsComponent: PlayerStatsComponent(),
-        HealthComponent: HealthComponent(hp=Settings.GAME.DEFAULT_PLAYER_HP),
+		PlayerStatsComponent: PlayerStatsComponent(speed=Settings.GAME.PLAYER_SPEED, max_hp=Settings.GAME.DEFAULT_PLAYER_HP),
+        HealthComponent: HealthComponent(hp=Settings.GAME.DEFAULT_PLAYER_HP, max_hp=Settings.GAME.DEFAULT_PLAYER_HP),
+        ArsenalComponent: ArsenalComponent(
+            inventory= {
+                "shotgun": WeaponStats(
+                    damage=1, 
+                    fire_rate=1.0, 
+                    projectile_count=3, 
+                    spread_angle=15.0
+                )
+            }
+        ),
         HitboxComponent: HitboxComponent(
             width=round(Settings.SPRITE.WIDTH * Settings.GAME.PLAYER_HITBOX_TO_SPRITE_RATIO), 
             height=round(Settings.SPRITE.HEIGHT * Settings.GAME.PLAYER_HITBOX_TO_SPRITE_RATIO)
+        ),
+        AnimationComponent: AnimationComponent(
+            frames={
+                Enums.ANIM_STATES.IDLE: Cache.SPRITES.PLAYER.IDLE,
+                Enums.ANIM_STATES.WALK: Cache.SPRITES.PLAYER.WALK
+            },
+            state=Enums.ANIM_STATES.IDLE,
+            direction=Enums.ANIM_DIRS.DOWN
         )
 	}
 
@@ -72,9 +90,17 @@ def spawn_enemy(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
 	        grid_pos= (grid_x, grid_y),
 	        rect=pygame.Rect(x, y, Settings.SPRITE.WIDTH, Settings.SPRITE.HEIGHT)
 	    ),
+        AnimationComponent: AnimationComponent(
+            frames={
+                Enums.ANIM_STATES.WALK: Cache.SPRITES.ENEMY.WALK
+            },
+            state=Enums.ANIM_STATES.WALK,
+            direction=Enums.ANIM_DIRS.DOWN
+        ),
+        FacingDirectionComponent: FacingDirectionComponent(dx=0, dy=0),
 	    RenderComponent: RenderComponent(color=Settings.DEBUG.ENEMY_COLOR),
 	    EnemyTag: EnemyTag(),
-	    HealthComponent: HealthComponent(hp=Settings.GAME.DEFAULT_ENEMY_HP),
+	    HealthComponent: HealthComponent(hp=Settings.GAME.DEFAULT_ENEMY_HP, max_hp=Settings.GAME.DEFAULT_ENEMY_HP),
         HitboxComponent: HitboxComponent(
             width=round(Settings.SPRITE.WIDTH * Settings.GAME.ENEMY_HITBOX_TO_SPRITE_RATIO), 
             height=round(Settings.SPRITE.HEIGHT * Settings.GAME.ENEMY_HITBOX_TO_SPRITE_RATIO)
@@ -105,7 +131,8 @@ def spawn_gem(world: dict, spatial_grid: dict, x_float: float, y_float: float, v
             # Use round() here to ensure the Rect is valid for Pygame
             rect=pygame.Rect((round(x + w//2), round(y + 4)), (w, h))
         ),
-        RenderComponent: RenderComponent(color=(0, 255, 255)),
+
+        RenderComponent: RenderComponent(color=(0,0,0), sprite=Cache.SPRITES.ITEMS.GEM),
         ExperienceGemComponent: ExperienceGemComponent(value=value)
     }
 
@@ -117,11 +144,6 @@ def spawn_shotgun(world: dict, spatial_grid: dict, target_id: int, start_angle: 
     new_id = States.NEXT_ENTITY_ID
     States.NEXT_ENTITY_ID += 1
 
-    # Placeholder sprite logic (gray box with black barrel)
-    placeholder_surface = pygame.Surface(Settings.SPRITE.SIZE, pygame.SRCALPHA)
-    placeholder_surface.fill((100, 100, 100)) 
-    pygame.draw.rect(placeholder_surface, Settings.COLOURS.BLACK, (10, 6, 6, 4)) 
-
     shotgun = {
         SpacialComponent: SpacialComponent(
             grid_pos=(0, 0),
@@ -129,11 +151,11 @@ def spawn_shotgun(world: dict, spatial_grid: dict, target_id: int, start_angle: 
         ),
         RenderComponent: RenderComponent(
             color=Settings.DEBUG.PLAYER_COLOR, 
-            sprite=placeholder_surface, 
-            base_sprite=placeholder_surface 
+            sprite=Cache.SPRITES.WEAPONS.SHOTGUN, 
+            base_sprite=Cache.SPRITES.WEAPONS.SHOTGUN 
         ),
         # Pass the new dynamic variables here!
-        OrbitalComponent: OrbitalComponent(target_id=target_id, radius=2.0, angle=start_angle, spin_speed=spin_speed),
+        OrbitalComponent: OrbitalComponent(target_id=target_id, radius=1.0, angle=start_angle, spin_speed=spin_speed),
         CooldownComponent: CooldownComponent(fire_rate=1.0),
         RotationComponent: RotationComponent(),
         PowerUpTag: PowerUpTag()
@@ -166,7 +188,6 @@ def spawn_bullet(world: dict, spatial_grid: dict, center_x: float, center_y: flo
             rect=pygame.Rect(spawn_x, spawn_y, 4, 4) 
         ),
         RenderComponent: RenderComponent(color=(255, 255, 0)), 
-        # Inject the dynamic speed and damage here!
         ProjectileComponent: ProjectileComponent(dx=dx, dy=dy, speed=speed, damage=damage)
     }
 

@@ -1,4 +1,4 @@
-from ECS.Components import EnemyTag, SpacialComponent, VelocityComponent
+from ECS.Components import EnemyTag, FacingDirectionComponent, SpacialComponent, VelocityComponent
 from Globals import Enums
 from ECS.Systems import FlowFieldSystem
 
@@ -18,3 +18,5 @@ def process(world: dict, global_event: list):
 						"dx": dx, 
 						"dy": dy
 					})
+					world[obj_id][FacingDirectionComponent].dx = dx
+					world[obj_id][FacingDirectionComponent].dy = dy

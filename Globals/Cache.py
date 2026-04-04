@@ -11,3 +11,25 @@ class SPRITES:
 			Enums.DIRECTIONS.DOWN: ARROWS_SHEET[3],
 			(0, 0): ARROWS_SHEET[4],
 		}
+
+        
+	class PLAYER:
+		idle_sprite_sheet = SpriteLoader.load_animation("Assets/Sprites/Player/Idle.png", (16, 16))
+		dead_sprite = SpriteLoader.load_sprite("Assets/Sprites/Player/Dead.png")
+		IDLE = [
+			[idle_sprite_sheet[0][Enums.ANIM_DIRS.DOWN]],
+			[idle_sprite_sheet[0][Enums.ANIM_DIRS.UP]],
+			[idle_sprite_sheet[0][Enums.ANIM_DIRS.LEFT]],
+			[idle_sprite_sheet[0][Enums.ANIM_DIRS.RIGHT]]
+		]
+		WALK = SpriteLoader.load_animation("Assets/Sprites/Player/Walk.png", (16, 16), True)
+		DEAD = [dead_sprite, dead_sprite, dead_sprite, dead_sprite]
+
+	class ENEMY:
+		WALK = SpriteLoader.load_animation("Assets/Sprites/Enemy/GreenCyclopsWalk.png", (16, 16), True)
+
+	class ITEMS:
+		GEM = SpriteLoader.load_sprite("Assets/Sprites/Gem.png")
+
+	class WEAPONS:
+		SHOTGUN = SpriteLoader.load_sprite("Assets/Sprites/Weapons/shutgun.png")

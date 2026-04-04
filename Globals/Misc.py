@@ -1,4 +1,5 @@
 from Globals import Settings
+from math import hypot
 
 def register_entity_in_grid(entity_id: int, pos: tuple, spatial_grid: dict):
 	if pos not in spatial_grid:
@@ -20,19 +21,26 @@ def interpolate_towards(position: tuple, target_position, speed: float):
 
 	return lerp(px, tx, speed), lerp(py, ty, speed)
 
-def move_towards(position: tuple, target_position: tuple, speed: float):
-	px, py = position
-	tx, ty = target_position
-	dx, dy = round(tx - px), round(ty - py)
+def move_towards(position: tuple, target_position: tuple, step_distance: float):
+    px, py = position
+    tx, ty = target_position
 
-	nx, ny = px + dx * speed, py + dy * speed
+    dx = tx - px
+    dy = ty - py
+    
+    # Get the actual straight-line distance
+    distance = hypot(dx, dy)
 
-	if dx == 0:
-		nx = tx
-	if dy == 0:
-		ny = ty
+    # If the step we are about to take is bigger than the distance remaining, 
+    # just snap directly to the target pixel to finish the movement!
+    if distance <= step_distance:
+        return tx, ty
 
-	return nx, ny
+    # Otherwise, move linearly along the vector
+    nx = px + (dx / distance) * step_distance
+    ny = py + (dy / distance) * step_distance
+
+    return nx, ny
 
 def lerp(start: float, end: float, speed: float):
 	if abs(speed) > abs(round(end - start)): 

@@ -1,4 +1,4 @@
-from ECS.Components import SpacialComponent, VelocityComponent, FacingDirectionComponent
+from ECS.Components import EnemyTag, PlayerInputTag, SpacialComponent, VelocityComponent, FacingDirectionComponent
 from Globals import Enums, Settings, Misc
 
 frame = 0
@@ -11,6 +11,8 @@ def process(world: dict, spatial_grid: dict, global_event: list, delta: float):
             if event["type"] == Enums.EVENT_TYPES.MOVEMENT_INTENT:
                 obj_id = event["entity_id"] 
                 if SpacialComponent in world[obj_id]:
+                    if VelocityComponent in world[obj_id]:
+                        continue
                     obj = world[obj_id]
 
                     gx, gy = obj[SpacialComponent].grid_pos
@@ -18,7 +20,11 @@ def process(world: dict, spatial_grid: dict, global_event: list, delta: float):
                     nx, ny = (gx + dx, gy + dy)
 
                     tx, ty = nx * Settings.SPRITE.WIDTH, ny * Settings.SPRITE.HEIGHT
-                    world[obj_id][VelocityComponent] = VelocityComponent(target=(tx, ty), position=world[obj_id][SpacialComponent].rect.topleft, speed=Settings.GAME.PLAYER_SPEED)
+
+                    speed = get_movement_speed(obj)
+                    
+
+                    world[obj_id][VelocityComponent] = VelocityComponent(target=(tx, ty), position=world[obj_id][SpacialComponent].rect.topleft, speed=speed)
 
                     if dx != 0 or dy != 0:
                         if FacingDirectionComponent in obj:
@@ -61,3 +67,12 @@ def move_entity_on_spatial_grid(entity_id: int, new_position: tuple, world:dict,
 
     obj[SpacialComponent].grid_pos = new_position
 
+
+def get_movement_speed(obj: dict):
+    speed = 0
+    if PlayerInputTag in obj:
+        speed = Settings.GAME.PLAYER_SPEED
+    elif EnemyTag in obj:
+        speed = Settings.GAME.ENEMY_SPEED
+
+    return speed * Settings.CELLS.WIDTH
