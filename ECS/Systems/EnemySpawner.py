@@ -24,5 +24,3 @@ def process(world: dict, spatial_grid: dict):
 	if spawned_enemies < Settings.GAME.ALLOWABLE_NUMBER_OF_ENEMIES_ON_SCREEN:
 		Factories.spawn_enemy(world, spatial_grid, ex, ey)
 
-	print(spawned_enemies)
-

@@ -6,7 +6,7 @@ from Globals import Settings, Misc
 from ECS.Components import (EnemyTag, FacingDirectionComponent, HealthComponent, PlayerStatsComponent, PowerUpTag, SpacialComponent, RenderComponent, 
 	PlayerInputTag, StalkerComponent, RotationComponent, CooldownComponent, ProjectileComponent, OrbitalComponent,
 	CollectorComponent, ExperienceGemComponent)
-
+from ECS.Components import UITag, UIButtonComponent
 
 def new_camera(cams_topleft: tuple, cams_size: tuple, target_id: int):
 	return {
@@ -159,3 +159,29 @@ def spawn_bullet(world: dict, spatial_grid: dict, center_x: float, center_y: flo
     Misc.register_entity_in_grid(new_id, (grid_x, grid_y), spatial_grid)
     
     return new_id
+
+def spawn_upgrade_menu(world: dict):
+    center_x = Settings.WINDOW.WIDTH // 2
+    center_y = Settings.WINDOW.HEIGHT // 2
+    
+    upgrades = [
+        {"text": "+1 Projectile", "action": {"buff": "projectile"}, "y_offset": -60},
+        {"text": "+1 Damage", "action": {"buff": "damage"}, "y_offset": 0},
+        {"text": "Faster Fire Rate", "action": {"buff": "fire_rate"}, "y_offset": 60}
+    ]
+
+    for upg in upgrades:
+        new_id = States.NEXT_ENTITY_ID
+        States.NEXT_ENTITY_ID += 1
+        
+        rect = pygame.Rect(0, 0, 250, 40)
+        rect.center = (center_x, center_y + upg["y_offset"])
+
+        world[new_id] = {
+            UITag: UITag(),
+            UIButtonComponent: UIButtonComponent(
+                rect=rect, 
+                text=upg["text"], 
+                action=upg["action"]
+            )
+        }

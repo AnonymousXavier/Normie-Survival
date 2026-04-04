@@ -3,7 +3,7 @@ import pygame
 from Core import States
 from ECS import Factories
 from ECS.Components import SpacialComponent
-from ECS.Systems import AINavigationSystem, CollectionSystem, CollisionSystem, AimingSystem, PickUpSystem, WeaponSystem,CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, OrbitalSystem, ProjectileSystem, RenderingSystem, DebugSystem, MovementSystem
+from ECS.Systems import AINavigationSystem, CollectionSystem, CollisionSystem, AimingSystem, PickUpSystem, UISystem, WeaponSystem,CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, OrbitalSystem, ProjectileSystem, RenderingSystem, DebugSystem, MovementSystem
 from Globals import Settings, Misc
 
 visible_entities = []
@@ -27,6 +27,8 @@ class Main:
 			visible_entities=visible_entities,
 			camera=States.camera, 
 		)
+		UISystem.process(States.world, Settings.window)
+		pygame.display.update()
 
 	def handle_debug(self):
 		debug = {}
@@ -48,27 +50,29 @@ class Main:
 		dt = Settings.WINDOW.CLOCK.tick(Settings.UPDATE.FPS) / 1000
 
 		InputSystem.process(States.world, events)
-		AimingSystem.process(States.world, States.spatial_grid, States.camera)
 
-		AINavigationSystem.process(States.world, events)
+		if not States.IS_LEVELING_UP:
+			AimingSystem.process(States.world, States.spatial_grid, States.camera)
 
-		MovementSystem.process(States.world, States.spatial_grid, events, dt)
-		ProjectileSystem.process(States.world, States.spatial_grid, States.camera, dt)
-		WeaponSystem.process(States.world, States.spatial_grid, dt)
-		CollectionSystem.process(States.world, States.spatial_grid)
+			AINavigationSystem.process(States.world, events)
 
-		# Run collisions after movement but before spawning new things
-		CollisionSystem.process(States.world, States.spatial_grid)
-		PickUpSystem.process(States.world, States.spatial_grid)
+			MovementSystem.process(States.world, States.spatial_grid, events, dt)
+			ProjectileSystem.process(States.world, States.spatial_grid, States.camera, dt)
+			WeaponSystem.process(States.world, States.spatial_grid, dt)
+			CollectionSystem.process(States.world, States.spatial_grid)
 
-		EnemySpawner.process(States.world, States.spatial_grid)
-		OrbitalSystem.process(States.world, States.spatial_grid, dt)
+			# Run collisions after movement but before spawning new things
+			CollisionSystem.process(States.world, States.spatial_grid)
+			PickUpSystem.process(States.world, States.spatial_grid)
 
-		CameraSystem.process(States.world, States.camera, dt)
-		FlowFieldSystem.flow_field = FlowFieldSystem.create_flow_field(States.world[States.PLAYER_ID][SpacialComponent].grid_pos)
+			EnemySpawner.process(States.world, States.spatial_grid)
+			OrbitalSystem.process(States.world, States.spatial_grid, dt)
+
+			CameraSystem.process(States.world, States.camera, dt)
+			FlowFieldSystem.flow_field = FlowFieldSystem.create_flow_field(States.world[States.PLAYER_ID][SpacialComponent].grid_pos)
 
 		visible_entities = Misc.get_entities_on_screen(States.spatial_grid, CameraSystem.get_boundary_of(States.camera))
-		pygame.display.update()
+		
 
 	def run(self):
 		while States.GAME_RUNNING:

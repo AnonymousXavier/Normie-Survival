@@ -30,10 +30,16 @@ def process(world: dict, spatial_grid: dict):
                             
                             # Level check
                             if p_stats.xp >= p_stats.xp_to_next_level:
-                                level_up(p_stats)
+                                level_up(p_stats, world)
 
-def level_up(stats):
+def level_up(stats, world):
     stats.level += 1
     stats.xp = 0
     stats.xp_to_next_level = int(stats.xp_to_next_level * 1.5)
+
     print(f"LEVEL UP! Reached Level {stats.level}")
+    
+    # FREEZE THE GAME AND SPAWN MENU
+    States.IS_LEVELING_UP = True
+    from ECS import Factories
+    Factories.spawn_upgrade_menu(world)

@@ -107,6 +107,17 @@ class PlayerStatsComponent:
     level: int = 1
     xp_to_next_level: int = 5
 
+@dataclass(kw_only=True)
+class UIButtonComponent:
+    rect: pygame.Rect
+    text: str
+    action: dict  # what this button actually does
+    color: tuple = (50, 50, 50)
+    hover_color: tuple = (100, 100, 100)
+    is_hovered: bool = False
+
+class UITag:
+    pass
 class PlayerInputTag: 
 	pass
 class FloorTag: 
