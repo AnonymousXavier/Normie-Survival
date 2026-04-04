@@ -2,12 +2,12 @@ from dataclasses import dataclass, field
 from typing import Optional
 import pygame
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, slots=True)
 class SpacialComponent:
 	grid_pos: Optional[tuple] = None
 	rect: pygame.Rect
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, slots=True)
 class RenderComponent:
 	color: tuple
 	sprite: Optional[pygame.Surface] = None
@@ -91,7 +91,23 @@ class WeaponStats:
 
 @dataclass(kw_only=True, slots=True)
 class HealthComponent:
-    hp: int = 1
+    hp: int = 100
+    max_hp: int = hp
+    inv_duration: float = 0.5  # Half a second of invincibility
+    inv_timer: float = 0.0
+
+@dataclass(kw_only=True, slots=True)
+class HitboxComponent:
+    width: int
+    height: int
+    offset_x: int = 0
+    offset_y: int = 0
+    
+    # This will be updated by the system to match world position
+    rect: pygame.Rect = field(init=False)
+
+    def __post_init__(self):
+        self.rect = pygame.Rect(0, 0, self.width, self.height)
 
 @dataclass(kw_only=True, slots=True)
 class ExperienceGemComponent:
@@ -128,3 +144,4 @@ class PowerUpTag:
 	pass
 class PickupTag:
     pass
+

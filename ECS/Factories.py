@@ -3,7 +3,7 @@ import math
 
 from Core import States
 from Globals import Settings, Misc
-from ECS.Components import (EnemyTag, FacingDirectionComponent, HealthComponent, PlayerStatsComponent, PowerUpTag, SpacialComponent, RenderComponent, 
+from ECS.Components import (EnemyTag, FacingDirectionComponent, HealthComponent, HitboxComponent, PlayerStatsComponent, PowerUpTag, SpacialComponent, RenderComponent, 
 	PlayerInputTag, StalkerComponent, RotationComponent, CooldownComponent, ProjectileComponent, OrbitalComponent,
 	CollectorComponent, ExperienceGemComponent)
 from ECS.Components import UITag, UIButtonComponent
@@ -30,7 +30,12 @@ def spawn_player(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
 		PlayerInputTag: PlayerInputTag(),
 		FacingDirectionComponent: FacingDirectionComponent(),
 		CollectorComponent: CollectorComponent(),
-		PlayerStatsComponent: PlayerStatsComponent()
+		PlayerStatsComponent: PlayerStatsComponent(),
+        HealthComponent: HealthComponent(hp=Settings.GAME.DEFAULT_PLAYER_HP),
+        HitboxComponent: HitboxComponent(
+            width=round(Settings.SPRITE.WIDTH * Settings.GAME.PLAYER_HITBOX_TO_SPRITE_RATIO), 
+            height=round(Settings.SPRITE.HEIGHT * Settings.GAME.PLAYER_HITBOX_TO_SPRITE_RATIO)
+        )
 	}
 
 	world[new_id] = player
@@ -69,13 +74,16 @@ def spawn_enemy(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
 	    ),
 	    RenderComponent: RenderComponent(color=Settings.DEBUG.ENEMY_COLOR),
 	    EnemyTag: EnemyTag(),
-	    HealthComponent: HealthComponent(hp=3) # Enemies now have 3 HP
+	    HealthComponent: HealthComponent(hp=Settings.GAME.DEFAULT_ENEMY_HP),
+        HitboxComponent: HitboxComponent(
+            width=round(Settings.SPRITE.WIDTH * Settings.GAME.ENEMY_HITBOX_TO_SPRITE_RATIO), 
+            height=round(Settings.SPRITE.HEIGHT * Settings.GAME.ENEMY_HITBOX_TO_SPRITE_RATIO)
+        )
 	}
 
 	world[new_id] = enemy
 	Misc.register_entity_in_grid(new_id, (grid_x, grid_y), spatial_grid)
 
-	print(f"Spawned Enemy AT: {grid_x, grid_y}")
 	return new_id
 
 def spawn_gem(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
@@ -94,9 +102,6 @@ def spawn_gem(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
 
     world[new_id] = gem
     Misc.register_entity_in_grid(new_id, (grid_x, grid_y), spatial_grid)
-
-
-	
 
 def spawn_shotgun(world: dict, spatial_grid: dict, target_id: int, start_angle: float = 0.0, spin_speed: float = 0.0):
     new_id = States.NEXT_ENTITY_ID
@@ -185,6 +190,3 @@ def spawn_upgrade_menu(world: dict):
                 action=upg["action"]
             )
         }
-
-        print(f" Menu Spawned with id: {new_id}")
-    print("spawned menu")

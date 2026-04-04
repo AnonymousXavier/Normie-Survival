@@ -3,7 +3,7 @@ import pygame
 from Core import States
 from ECS import Factories
 from ECS.Components import SpacialComponent
-from ECS.Systems import AINavigationSystem, CollectionSystem, CollisionSystem, AimingSystem, PickUpSystem, UISystem, WeaponSystem,CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, OrbitalSystem, ProjectileSystem, RenderingSystem, DebugSystem, MovementSystem
+from ECS.Systems import AINavigationSystem, CollectionSystem, CollisionSystem, AimingSystem, DamageSystem, HitboxSystem, PickUpSystem, UISystem, WeaponSystem,CameraSystem, DebugRenderingSystem, EnemySpawner, FlowFieldSystem, InputSystem, OrbitalSystem, ProjectileSystem, RenderingSystem, DebugSystem, MovementSystem
 from Globals import Settings, Misc
 
 visible_entities = []
@@ -26,7 +26,6 @@ class Main:
 			camera=States.camera, 
 		)
 		UISystem.process(States.world, Settings.window)
-		pygame.display.update()
 
 	def handle_debug(self):
 		debug = {}
@@ -37,7 +36,8 @@ class Main:
 			surface=Settings.window,
 			debug=debug,
 			debug_grid=debug_spatial_grid,
-			camera=States.camera
+			camera=States.camera,
+			real_world=States.world
 		)
 
 	def update(self):
@@ -55,11 +55,14 @@ class Main:
 			AINavigationSystem.process(States.world, events)
 
 			MovementSystem.process(States.world, States.spatial_grid, events, dt)
+			HitboxSystem.process(States.world)
+
 			ProjectileSystem.process(States.world, States.spatial_grid, States.camera, dt)
 			WeaponSystem.process(States.world, States.spatial_grid, dt)
 			CollectionSystem.process(States.world, States.spatial_grid)
 
 			# Run collisions after movement but before spawning new things
+			DamageSystem.process(States.world, States.spatial_grid, dt)
 			CollisionSystem.process(States.world, States.spatial_grid)
 			PickUpSystem.process(States.world, States.spatial_grid)
 
@@ -79,5 +82,6 @@ class Main:
 			if Settings.DEBUG.ENABLED:
 				self.handle_debug()
 			
+			pygame.display.update()
 
 Main().run()
