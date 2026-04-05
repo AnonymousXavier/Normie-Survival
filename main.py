@@ -35,6 +35,8 @@ from Globals import Settings, Misc
 
 visible_entities = []
 
+dt = 0
+
 
 class Main:
     def __init__(self) -> None:
@@ -55,6 +57,7 @@ class Main:
             world=States.world,
             visible_entities=visible_entities,
             camera=States.camera,
+            dt=dt,
         )
         UIRenderingSystem.process(States.world, Settings.window)
 
@@ -73,6 +76,7 @@ class Main:
 
     def update(self):
         global visible_entities
+        global dt
 
         events = []
 

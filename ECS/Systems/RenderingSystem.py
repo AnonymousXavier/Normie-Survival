@@ -3,24 +3,33 @@ from ECS.Components import (
     SpacialComponent,
     RenderComponent,
     HealthComponent,
+    ShieldComponent,
+    AOEComponent,
 )
 from ECS.Systems import CameraSystem
 
 import pygame
+import math
 
 from Globals import Misc
 from Globals import Settings
 from Globals.Settings import SPRITE
 
 
-def process(surface: pygame.Surface, world: dict, camera: dict, visible_entities: list):
+def process(
+    surface: pygame.Surface,
+    world: dict,
+    camera: dict,
+    visible_entities: list,
+    dt: float,
+):
     camera_rect: pygame.Rect = camera[SpacialComponent].rect
     cam_boundary = CameraSystem.get_boundary_of(camera)
 
     rendering_data = Misc.get_camera_rendering_data(cam_boundary)
 
     game_entities_rendered_surface = draw_game_entities(
-        world, cam_boundary, camera_rect, visible_entities
+        world, cam_boundary, camera_rect, visible_entities, dt
     )
     entities_transformed_surface = pygame.transform.scale(
         game_entities_rendered_surface, rendering_data["size"]
@@ -30,7 +39,7 @@ def process(surface: pygame.Surface, world: dict, camera: dict, visible_entities
 
 
 def draw_game_entities(
-    world: dict, cam_boundary: dict, camera_rect, visible_entities: list
+    world: dict, cam_boundary: dict, camera_rect, visible_entities: list, dt: float
 ):
     cbw, cbh = cam_boundary["world_size"]
 
@@ -49,6 +58,34 @@ def draw_game_entities(
             )
             render_rect = pygame.Rect(render_pos, obj_rect.size)
 
+            # 3. AOE VISUAL (Underlay)
+            # If this is the AOE entity itself (Orbital), give it a pulse
+            # Inside RenderingSystem.py
+            if AOEComponent in obj:
+                aoe = obj[AOEComponent]
+                # Calculate alpha: very bright right after firing (timer=0), fades as it recharges
+                # (1.0 - (aoe.timer / aoe.cooldown)) creates a fading effect
+                intensity = max(0, 1.0 - (aoe.timer / aoe.cooldown))
+                alpha = int(intensity * 100)  # Max 100 alpha
+
+                # ... (rest of your circle drawing code using this alpha)
+                radius_px = obj[AOEComponent].radius * Settings.SPRITE.WIDTH
+                aoe_surf = pygame.Surface(
+                    (radius_px * 2, radius_px * 2), pygame.SRCALPHA
+                )
+
+                # Red pulsing zone
+                pygame.draw.circle(
+                    aoe_surf, (255, 0, 0, alpha), (radius_px, radius_px), radius_px
+                )
+                pygame.draw.circle(
+                    aoe_surf, (255, 0, 0, alpha), (radius_px, radius_px), radius_px, 1
+                )
+
+                render_surface.blit(
+                    aoe_surf, aoe_surf.get_rect(center=render_rect.center)
+                )
+
             # 1. DRAW ENTITY SPRITE/RECT
             if obj[RenderComponent].sprite:
                 render_surface.blit(obj[RenderComponent].sprite, render_rect)
@@ -56,6 +93,33 @@ def draw_game_entities(
                 pygame.draw.rect(
                     render_surface, obj[RenderComponent].color, render_rect
                 )
+
+            # 2. SHIELD VISUAL (Overlay)
+            if ShieldComponent in obj:
+                s = obj[ShieldComponent]
+                if s.active:
+                    # Create a transparent surface for the 'bubble'
+                    s_size = obj[SpacialComponent].rect.width + 12
+                    shield_surf = pygame.Surface((s_size, s_size), pygame.SRCALPHA)
+
+                    # Pulsing Alpha based on time
+                    alpha = 100 + int(math.sin(pygame.time.get_ticks() * 0.01) * 30)
+                    color = (0, 150, 255, alpha)  # Transparent Blue
+
+                    pygame.draw.circle(
+                        shield_surf, color, (s_size // 2, s_size // 2), s_size // 2, 2
+                    )
+                    # Draw the 'glow'
+                    pygame.draw.circle(
+                        shield_surf,
+                        (0, 150, 255, 40),
+                        (s_size // 2, s_size // 2),
+                        s_size // 2 - 2,
+                    )
+
+                    render_surface.blit(
+                        shield_surf, shield_surf.get_rect(center=render_rect.center)
+                    )
 
             # 2. DRAW HEALTH BAR (New)
             # We check both HealthComponent (Enemies) and PlayerStatsComponent (Xavier)
@@ -103,4 +167,24 @@ def draw_game_entities(
                         (bx, xp_by, bar_w * xp_perc, bar_h),
                     )
 
+            # Hit Flash
+            if HealthComponent in obj and obj[HealthComponent].hit_timer > 0:
+                # Use the hit-flash surface instead of the regular sprite
+                hit_sprite = get_hit_surface(obj[RenderComponent].sprite)
+                render_surface.blit(hit_sprite, render_rect)
+                # Decrease timer
+                obj[HealthComponent].hit_timer -= dt
+            else:
+                # Draw normal sprite
+                # render_surface.blit(obj[RenderComponent].sprite, render_rect)
+                pass
+
     return render_surface
+
+
+def get_hit_surface(sprite):
+    # 1. Create a mask from the sprite (handles transparency perfectly)
+    mask = pygame.mask.from_surface(sprite)
+    # 2. Convert that mask into a surface
+    hit_surf = mask.to_surface(setcolor=(255, 255, 255, 255), unsetcolor=(0, 0, 0, 0))
+    return hit_surf

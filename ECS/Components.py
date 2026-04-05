@@ -108,6 +108,7 @@ class HealthComponent:
     max_hp: int
     inv_duration: float = 0.5  # Half a second of invincibility
     inv_timer: float = 0.0
+    hit_timer: float = 0.0
 
 
 @dataclass(kw_only=True, slots=True)

@@ -19,91 +19,99 @@ from ECS.Components import (
 from ECS import Factories
 
 
+# ECS/Systems/CombatSystem.py
+
+
 def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None):
-    entity = world.get(target_id)
-    boss_entity = world.get(target_id)  # Rename to keep it safe
-    if not boss_entity:
+    target = world.get(target_id)
+    if not target:
         return
-    if not entity:
+
+    # --- 0. PREVENT OVERKILL (Moved to the top) ---
+    # If the target is already dead/dying, ignore this extra projectile/hit
+    if HealthComponent in target and target[HealthComponent].hp <= 0:
+        return
+    if PlayerStatsComponent in target and target[PlayerStatsComponent].current_hp <= 0:
         return
 
     # --- 1. SHIELD LOGIC ---
-    if ShieldComponent in entity:
-        shield = entity[ShieldComponent]
+    if ShieldComponent in target:
+        shield = target[ShieldComponent]
         if shield.active:
             shield.current_hits -= 1
-            print(f"Shield Hit! Hits left: {shield.current_hits}")
-
             if shield.current_hits <= 0:
                 shield.active = False
                 shield.timer = 0
-                # Note: hits will be reset in DamageSystem/ShieldSystem when timer finishes
             return  # Damage fully absorbed
 
     # --- 2. APPLY DAMAGE ---
     is_dead = False
-    if PlayerStatsComponent in entity:
-        stats = entity[PlayerStatsComponent]
+    if PlayerStatsComponent in target:
+        stats = target[PlayerStatsComponent]
         stats.current_hp -= amount
         is_dead = stats.current_hp <= 0
-        print(f"Player Hit! HP: {stats.current_hp}/{stats.final_max_hp}")
-    elif HealthComponent in entity:
-        health = entity[HealthComponent]
+    elif HealthComponent in target:
+        health = target[HealthComponent]
         health.hp -= amount
         is_dead = health.hp <= 0
 
-    # --- 3. DEATH & TOMBSTONING ---
+    target[HealthComponent].hit_timer = 0.1
+    # --- 3. DEATH LOGIC ---
     if is_dead:
-        if BossTag in boss_entity:
+        if BossTag in target:
             print("🏆 BOSS DEFEATED: CLEARING THE HORDE!")
-            # Use a different variable name for the loop (e.g., 'e_id', 'e_obj')
+            # Use 'e_id' and 'e_obj' to avoid overwriting our 'target' reference
             for e_id, e_obj in list(world.items()):
                 if EnemyTag in e_obj and BossTag not in e_obj:
                     g_pos = e_obj[SpacialComponent].grid_pos
                     Misc.remove_entity_from_grid(e_id, g_pos, spatial_grid)
                     del world[e_id]
 
-            # Now 'boss_entity' is still valid for the gem spawn
+            # Spawn Mega Gem exactly where the boss was
             Factories.spawn_gem(
                 world,
                 spatial_grid,
-                boss_entity[SpacialComponent].grid_pos[0],
-                boss_entity[SpacialComponent].grid_pos[1],
+                target[SpacialComponent].grid_pos[0],
+                target[SpacialComponent].grid_pos[1],
                 value=get_gem_value(100),
             )
 
-        elif EnemyTag in entity:
-            # Spawn Gems for enemies
-            is_strong = StrongerEnemyTag in entity
+            # Bosses are deleted immediately to stop them from dealing contact damage
+            Misc.remove_entity_from_grid(
+                target_id, target[SpacialComponent].grid_pos, spatial_grid
+            )
+            del world[target_id]
 
-            # Apply difficulty scaling to gem value too?
-            gem_value = 5 if is_strong else 1
+        elif EnemyTag in target:
+            # Handle standard enemy death
+            is_strong = StrongerEnemyTag in target
+            gem_value = get_gem_value(5 if is_strong else 1)
 
-            death_pos = entity[SpacialComponent].grid_pos
-            gem_value = get_gem_value(gem_value)
+            death_pos = target[SpacialComponent].grid_pos
             rx = death_pos[0] + (randint(-5, 5) / 10.0)
             ry = death_pos[1] + (randint(-5, 5) / 10.0)
             Factories.spawn_gem(world, spatial_grid, rx, ry, value=gem_value)
 
+            # Add to the system's deletion set for the main cleanup pass
             if entities_to_delete is not None:
                 entities_to_delete.add(target_id)
 
-        elif PlayerInputTag in entity:
+        elif PlayerInputTag in target:
             # --- TOMBSTONING PROTOCOL ---
             # Remove components that allow interaction/movement
-            del entity[PlayerInputTag]
-            if ArsenalComponent in entity:
-                del entity[ArsenalComponent]
-            if HitboxComponent in entity:
-                del entity[HitboxComponent]
+            del target[PlayerInputTag]
+            if ArsenalComponent in target:
+                del target[ArsenalComponent]
+            if HitboxComponent in target:
+                del target[HitboxComponent]
 
-            if DeathTimerComponent not in entity:
-                entity[DeathTimerComponent] = DeathTimerComponent()
+            if DeathTimerComponent not in target:
+                target[DeathTimerComponent] = DeathTimerComponent()
 
-            if AnimationComponent in entity:
-                entity[AnimationComponent].state = Enums.ANIM_STATES.DEAD
-                entity[AnimationComponent].current_frame = 0
-                entity[AnimationComponent].speed = 0
+            if AnimationComponent in target:
+                target[AnimationComponent].state = Enums.ANIM_STATES.DEAD
+                target[AnimationComponent].current_frame = 0
+                target[AnimationComponent].speed = 0
             print("Player Tombstoned!")
 
 
