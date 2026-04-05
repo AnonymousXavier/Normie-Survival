@@ -46,12 +46,7 @@ class Main:
         )
 
         # Spawn two shotguns, opposite to each other, rotating at 90 degrees per second
-        Factories.spawn_shotgun(
-            States.world, States.spatial_grid, States.PLAYER_ID, start_angle=0.0
-        )
-        Factories.spawn_shotgun(
-            States.world, States.spatial_grid, States.PLAYER_ID, start_angle=180.0
-        )
+        UISystem.apply_upgrade("shotgun", States.world[States.PLAYER_ID])
 
     def draw(self):
         Settings.window.fill(Settings.COLOURS.BLACK)
@@ -87,6 +82,7 @@ class Main:
 
         if not States.IS_LEVELING_UP:
             States.GAME_TIME += dt
+            States.BOSS_TIMER -= dt
 
             AimingSystem.process(States.world, States.spatial_grid, States.camera)
 
@@ -103,14 +99,14 @@ class Main:
             )
             WeaponSystem.process(States.world, States.spatial_grid, dt)
             AOESystem.process(States.world, States.spatial_grid, dt)
-            CollectionSystem.process(States.world, States.spatial_grid)
+            CollectionSystem.process(States.world, States.spatial_grid, dt)
 
             # Run collisions after movement but before spawning new things
             DamageSystem.process(States.world, States.spatial_grid, dt)
             CollisionSystem.process(States.world, States.spatial_grid)
             PickUpSystem.process(States.world, States.spatial_grid)
 
-            EnemySpawner.process(States.world, States.spatial_grid)
+            EnemySpawner.process(States.world, States.spatial_grid, dt)
             OrbitalSystem.process(States.world, States.spatial_grid, dt)
 
             CameraSystem.process(States.world, States.camera, dt)
@@ -118,11 +114,22 @@ class Main:
                 States.world[States.PLAYER_ID][SpacialComponent].grid_pos
             )
 
+            if States.BOSS_TIMER <= 0:
+                self.trigger_boss_spawn()
+                States.BOSS_TIMER = Settings.GAME.BOSS_SPAWN_TIME_DELAY
+
         UISystem.process_events(States.world, events)
         UIHoverSystem.process(States.world)
 
         visible_entities = Misc.get_entities_on_screen(
             States.spatial_grid, CameraSystem.get_boundary_of(States.camera)
+        )
+
+    def trigger_boss_spawn(self):
+        Factories.spawn_boss(
+            States.world,
+            States.spatial_grid,
+            EnemySpawner.get_difficulty_mult(),
         )
 
     def run(self):

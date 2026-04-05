@@ -2,77 +2,90 @@ import pygame
 
 pygame.init()
 
+
 class WINDOW:
-	DESKTOP_WIDTH, DESKTOP_HEIGHT = pygame.display.get_desktop_sizes()[0]
+    DESKTOP_WIDTH, DESKTOP_HEIGHT = pygame.display.get_desktop_sizes()[0]
 
-	MIN_WIDTH = 500
-	MIN_HEIGHT = 500
-	
-	WIDTH = 500
-	HEIGHT = 500
-	SIZE = WIDTH, HEIGHT
+    MIN_WIDTH = 500
+    MIN_HEIGHT = 500
 
-	CLOCK = pygame.Clock()
+    WIDTH = 500
+    HEIGHT = 500
+    SIZE = WIDTH, HEIGHT
+
+    CLOCK = pygame.Clock()
+
 
 class SPRITE:
-	WIDTH = 16
-	HEIGHT = 16
-	SIZE = WIDTH, HEIGHT
+    WIDTH = 16
+    HEIGHT = 16
+    SIZE = WIDTH, HEIGHT
+
 
 class CELLS:
-	WIDTH = SPRITE.WIDTH
-	HEIGHT = SPRITE.HEIGHT
-	SIZE = WIDTH, HEIGHT
+    WIDTH = SPRITE.WIDTH
+    HEIGHT = SPRITE.HEIGHT
+    SIZE = WIDTH, HEIGHT
+
 
 class UPDATE:
-	INPUT_CHECKS_PER_SEC = 15
-	FPS = 60
+    INPUT_CHECKS_PER_SEC = 15
+    FPS = 60
+
 
 class GAME:
-	PLAYER_SPEED = 5 # Cells per secs
-	ENEMY_SPEED = 2
+    PLAYER_SPEED = 5  # Cells per secs
+    ENEMY_SPEED = 2
 
-	PLAYER_HITBOX_TO_SPRITE_RATIO = 0.375 
-	ENEMY_HITBOX_TO_SPRITE_RATIO = 0.75
+    PLAYER_HITBOX_TO_SPRITE_RATIO = 0.375
+    ENEMY_HITBOX_TO_SPRITE_RATIO = 0.75
 
-	FIELD_OF_VIEW_IN_PERCENT = 0.8 # Renderable Region Isze compared to window size
+    FIELD_OF_VIEW_IN_PERCENT = 0.8  # Renderable Region Isze compared to window size
 
-	ALLOWABLE_NUMBER_OF_ENEMIES_ON_SCREEN = 100
-	MAX_DISTANCE_FROM_PLAYER = 25
+    ALLOWABLE_NUMBER_OF_ENEMIES_ON_SCREEN = 100
+    MAX_DISTANCE_FROM_PLAYER = 25
 
-	DEFAULT_PLAYER_HP = 10
-	DEFAULT_ENEMY_HP = 3
+    DEFAULT_PLAYER_HP = 10
+    DEFAULT_ENEMY_HP = 3
 
-	XP_GEM_SIZE = (8, 8)
-	TIME_ELAPSED_TO_ENEMIES_RATIO = 5 # Increase by n every min
+    XP_GEM_SIZE = (8, 8)
+    TIME_ELAPSED_TO_ENEMIES_RATIO = 5  # Increase by n every min
+    BOSS_SPAWN_TIME_DELAY = 60  # secs
+
 
 class COLOURS:
-	BLACK = (0, 0, 0)
-	RED = (255, 0, 0)
-	BLUE = (0, 0, 255)
-	GREEN = (0, 255, 0)
+    BLACK = (0, 0, 0)
+    RED = (255, 0, 0)
+    BLUE = (0, 0, 255)
+    GREEN = (0, 255, 0)
+
 
 class DEBUG:
-	ENABLED = False
-	PLAYER_COLOR = COLOURS.BLUE
-	ENEMY_COLOR = COLOURS.GREEN
-	HITBOX_COLOR = COLOURS.RED
+    ENABLED = False
+    PLAYER_COLOR = COLOURS.BLUE
+    ENEMY_COLOR = COLOURS.GREEN
+    HITBOX_COLOR = COLOURS.RED
+
 
 class CAMERA:
-	ZOOM =  WINDOW.HEIGHT / ( CELLS.HEIGHT * GAME.MAX_DISTANCE_FROM_PLAYER * GAME.FIELD_OF_VIEW_IN_PERCENT)
-	WIDTH = WINDOW.WIDTH / ZOOM
-	HEIGHT = WINDOW.HEIGHT / ZOOM
+    ZOOM = WINDOW.HEIGHT / (
+        CELLS.HEIGHT * GAME.MAX_DISTANCE_FROM_PLAYER * GAME.FIELD_OF_VIEW_IN_PERCENT
+    )
+    WIDTH = WINDOW.WIDTH / ZOOM
+    HEIGHT = WINDOW.HEIGHT / ZOOM
 
-	SIZE = WIDTH, HEIGHT
-	@classmethod
-	def update(cls):
-		pass
+    SIZE = WIDTH, HEIGHT
+
+    @classmethod
+    def update(cls):
+        pass
 
 
 class CONTROLS:
-	UP = (pygame.K_w, pygame.K_UP)
-	DOWN = (pygame.K_s, pygame.K_DOWN)
-	LEFT = (pygame.K_a, pygame.K_LEFT)
-	RIGHT = (pygame.K_d, pygame.K_RIGHT)
+    UP = (pygame.K_w, pygame.K_UP)
+    DOWN = (pygame.K_s, pygame.K_DOWN)
+    LEFT = (pygame.K_a, pygame.K_LEFT)
+    RIGHT = (pygame.K_d, pygame.K_RIGHT)
+
 
 window = pygame.display.set_mode(WINDOW.SIZE, pygame.RESIZABLE)

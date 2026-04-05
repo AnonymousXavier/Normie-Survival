@@ -144,6 +144,17 @@ class UIButtonComponent:
     is_hovered: bool = False
 
 
+@dataclass(kw_only=True)
+class StatsButtonComponent:
+    rect: pygame.Rect
+    title: str
+    description: str
+    action: dict
+    color: tuple = (40, 40, 40)
+    hover_color: tuple = (80, 80, 80)
+    is_hovered: bool = False
+
+
 @dataclass(kw_only=True, slots=True)
 class AOEComponent:
     radius: float = 2.0  # In grid cells
@@ -243,4 +254,12 @@ class PowerUpTag:
 
 
 class PickupTag:
+    pass
+
+
+class BossTag:
+    pass
+
+
+class StrongerEnemyTag:
     pass

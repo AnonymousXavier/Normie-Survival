@@ -1,54 +1,104 @@
 from Core import States
-from ECS.Components import ExperienceGemComponent, SpacialComponent, CollectorComponent, PlayerStatsComponent
+from ECS.Components import (
+    ExperienceGemComponent,
+    SpacialComponent,
+    CollectorComponent,
+    PlayerStatsComponent,
+)
+from ECS.Systems import UISystem
 from ECS.Builders.LevelUpMenuBuilder import LevelUpMenuBuilder
-from Globals import Misc, Upgrades
+from Globals import Misc
 
-def process(world: dict, spatial_grid: dict):    
+
+# ECS/Systems/CollectionSystem.py
+import math
+from Globals import Settings
+
+
+def process(world: dict, spatial_grid: dict, dt: float):
     if States.PLAYER_ID not in world:
         return
-        
-    player_obj = world[States.PLAYER_ID]
-    
-    # Safety check for required components
-    if CollectorComponent in player_obj and PlayerStatsComponent in player_obj:
-        p_pos = player_obj[SpacialComponent].grid_pos
-        p_stats = player_obj[PlayerStatsComponent]
-        p_range = player_obj[CollectorComponent].range
-        
-        r = int(p_range)
-        for dx in range(-r, r + 1):
-            for dy in range(-r, r + 1):
-                cell = (p_pos[0] + dx, p_pos[1] + dy)
-                
-                if cell in spatial_grid:
-                    for entity_id in list(spatial_grid[cell]):
-                        target_entity = world.get(entity_id)
-                        if target_entity and ExperienceGemComponent in target_entity:
-                            # Add XP
-                            p_stats.xp += target_entity[ExperienceGemComponent].value
-                            print(f"XP: {p_stats.xp} / {p_stats.xp_to_next_level}")
-                            
-                            # Cleanup
-                            Misc.remove_entity_from_grid(entity_id, cell, spatial_grid)
-                            del world[entity_id]
-                            
-                            # Level check
-                            if p_stats.xp >= p_stats.xp_to_next_level:
-                                level_up(p_stats, world)
 
-def level_up(stats, world):
-    # 1. Standard Level Up Logic
-    stats.level += 1
-    stats.xp = 0 # Or keep the remainder if you're fancy
-    stats.xp_to_next_level = int(stats.xp_to_next_level * 1.5)
+    player = world[States.PLAYER_ID]
+    p_pos = player[SpacialComponent].rect.center  # Use pixel center for smooth math
+    p_stats = player[PlayerStatsComponent]
+    p_range_grid = player[CollectorComponent].range
 
-    print(f"LEVEL UP! Reached Level {stats.level}")
-    
-    # 2. Get the Options
-    options = Upgrades.get_random_upgrades(stats.upgrades_owned)
-    
-    # 3. Build the UI using our dynamic builder!
+    # Convert grid range to pixels for the magnet check
+    magnet_range = p_range_grid * Settings.SPRITE.WIDTH
+    collection_range = 10  # Pixels (nearly touching)
+    pull_speed = 400  # Pixels per second
+
+    # We still use the spatial grid to find nearby gems efficiently
+    grid_r = int(p_range_grid) + 1
+    p_grid_x, p_grid_y = player[SpacialComponent].grid_pos
+
+    for dx in range(-grid_r, grid_r + 1):
+        for dy in range(-grid_r, grid_r + 1):
+            cell = (p_grid_x + dx, p_grid_y + dy)
+            if cell not in spatial_grid:
+                continue
+
+            for gem_id in list(spatial_grid[cell]):
+                gem = world.get(gem_id)
+                if not gem or ExperienceGemComponent not in gem:
+                    continue
+
+                g_rect = gem[SpacialComponent].rect
+                g_center = g_rect.center
+
+                # Calculate distance
+                dist_x = p_pos[0] - g_center[0]
+                dist_y = p_pos[1] - g_center[1]
+                distance = math.sqrt(dist_x**2 + dist_y**2)
+
+                if distance < magnet_range:
+                    if distance < collection_range:
+                        # --- PHASE 2: COLLECT ---
+                        p_stats.xp += gem[ExperienceGemComponent].value
+                        Misc.remove_entity_from_grid(gem_id, cell, spatial_grid)
+                        del world[gem_id]
+
+                        if p_stats.xp >= p_stats.xp_to_next_level:
+                            level_up(p_stats, world)
+                    else:
+                        # --- PHASE 1: MAGNET PULL ---
+                        # Move gem toward player
+                        move_x = (dist_x / distance) * pull_speed * dt
+                        move_y = (dist_y / distance) * pull_speed * dt
+
+                        # Update precise pixel position
+                        g_rect.x += move_x
+                        g_rect.y += move_y
+
+                        # Sync grid position if it crosses cell boundaries
+                        new_grid_pos = (
+                            int(g_rect.x // Settings.SPRITE.WIDTH),
+                            int(g_rect.y // Settings.SPRITE.HEIGHT),
+                        )
+                        if new_grid_pos != cell:
+                            Misc.remove_entity_from_grid(gem_id, cell, spatial_grid)
+                            Misc.register_entity_in_grid(
+                                gem_id, new_grid_pos, spatial_grid
+                            )
+                            gem[SpacialComponent].grid_pos = new_grid_pos
+
+
+def level_up(p_stats, world):
+    # 1. Increment Level
+    p_stats.level += 1
+    p_stats.xp -= p_stats.xp_to_next_level
+    p_stats.xp_to_next_level = int(p_stats.xp_to_next_level * 1.4)
+
+    # 2. Generate the NEW formatted options
+    player_entity = world[States.PLAYER_ID]
+    options = UISystem.get_level_up_options(
+        player_entity
+    )  # Now returns 'title' and 'reward'
+
+    # 3. Build Menu (No more KeyError)
     LevelUpMenuBuilder.build(options)
-    
-    # 4. Pause the world so the menu can be interacted with
+
+    # 4. Pause Game
     States.IS_LEVELING_UP = True
+    print(f"✨ LEVEL {p_stats.level} REACHED!")

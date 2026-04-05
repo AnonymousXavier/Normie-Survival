@@ -1,18 +1,13 @@
 import pygame
 from Core import States
-from ECS.Components import UIButtonComponent
+from ECS.Components import UIButtonComponent, StatsButtonComponent
 
 
 def process(world: dict, events: list, pygame_event):
-    mouse_pos = States.SCREEN_MOUSE_POS
-
-    if (
-        pygame_event.type == pygame.MOUSEBUTTONDOWN and pygame_event.button == 1
-    ):  # Left Click
+    if pygame_event.type == pygame.MOUSEBUTTONDOWN and pygame_event.button == 1:
+        mouse_pos = States.SCREEN_MOUSE_POS
         for obj in world.values():
-            if UIButtonComponent in obj:
-                if obj[UIButtonComponent].rect.collidepoint(mouse_pos):
-                    # The clicker doesn't care what this is, it just forwards it!
-                    events.append(obj[UIButtonComponent].action)
-                    print("Clicked")
-                    return  # Prevent clicking multiple overlapping buttons
+            btn = obj.get(UIButtonComponent) or obj.get(StatsButtonComponent)
+            if btn and btn.rect.collidepoint(mouse_pos):
+                events.append(btn.action)
+                return

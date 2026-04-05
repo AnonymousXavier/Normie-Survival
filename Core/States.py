@@ -1,3 +1,6 @@
+from Globals import Settings
+
+
 world = {}
 spatial_grid = {}
 
@@ -10,6 +13,10 @@ PLAYER_ID = 1
 
 GAME_RUNNING = True
 IS_LEVELING_UP = False
+
+# DIFFICULTY SCALING
 GAME_TIME = 0.0
+BOSS_TIMER = Settings.GAME.BOSS_SPAWN_TIME_DELAY
+KILLS_COUNT = 0
 
 SCREEN_MOUSE_POS = (-1, -1)
