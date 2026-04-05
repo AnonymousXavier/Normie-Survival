@@ -1,7 +1,9 @@
 import pygame
+import random
+
 from Core import States
-from ECS.Components import UIButtonComponent, UITag, ArsenalComponent, ShieldComponent, AOEComponent
-from Globals import Settings
+from ECS.Components import UIButtonComponent, UITag, PlayerStatsComponent, ShieldComponent, AOEComponent
+from Globals import Settings, Upgrades
 
 # Initialize font
 pygame.font.init()
@@ -29,7 +31,7 @@ def process(world: dict, surface: pygame.Surface):
 
             # Click logic
             if btn.is_hovered and mouse_clicked:
-                apply_upgrade(btn.action)
+                apply_upgrade(btn.action, world[States.PLAYER_ID])
                 States.IS_LEVELING_UP = False
                 
                 # Mark all UI elements to be destroyed so the screen clears
@@ -53,29 +55,45 @@ def process(world: dict, surface: pygame.Surface):
         if u_id in world:
             del world[u_id]
 
-def apply_upgrade(action: dict):
-    player = States.world[States.PLAYER_ID]
-    stats = player[ArsenalComponent].inventory.get("shotgun")
+def get_level_up_options(player: dict) -> list:
+    owned = player[PlayerStatsComponent].upgrades_owned
+    valid_keys = []
+
+    for key, data in Upgrades.UPGRADE_POOL.items():
+        # Check max level
+        if owned.get(key, 0) >= data["max_level"]:
+            continue
+            
+        # Check conflicts
+        if any(conflict in owned for conflict in data.get("conflicts_with", [])):
+            continue
+
+        valid_keys.append(key)
+
+    chosen_keys = random.sample(valid_keys, min(3, len(valid_keys)))
     
-    # Passive upgrades
-    if action["buff"] == "projectile":
-        stats.projectile_count += 1
-    elif action["buff"] == "damage":
-        stats.damage += 1
-    elif action["buff"] == "fire_rate":
-        stats.fire_rate = max(0.1, stats.fire_rate - 0.1) 
+    # Return formatted data for your UI Builder
+    return [{"key": key, "text": Upgrades.UPGRADE_POOL[key]["text"], "y_offset": i * 60} for i, key in enumerate(chosen_keys)]
 
-    # Active Upgrades
-    if action["buff"] == "aoe":
-        # Add AOE, remove Shield if it exists to force the choice
-        if ShieldComponent in player: del player[ShieldComponent]
-        player[AOEComponent] = AOEComponent()
-        print("AOE Pulse Active!")
+def apply_upgrade(action_key: str, player: dict):
+    stats = player[PlayerStatsComponent]
+    stats.upgrades_owned[action_key] = stats.upgrades_owned.get(action_key, 0) + 1
+    
+    increment = Upgrades.UPGRADE_POOL[action_key].get("increment", 0)
+    
+    # Passives
+    if action_key == "move_speed":
+        stats.speed_mult += increment
+    elif action_key == "max_hp":
+        stats.hp_mult += increment
+        stats.current_hp += int(stats.base_max_hp * increment) # Heal the newly gained HP
+    elif action_key == "overall_damage":
+        stats.damage_mult += increment
+    elif action_key == "overall_attack_speed":
+        stats.fire_rate_mult += increment
         
-    elif action["buff"] == "shield":
-        # Add Shield, remove AOE if it exists
-        if AOEComponent in player: del player[AOEComponent]
+    # Actives
+    elif action_key == "aoe":
+        player[AOEComponent] = AOEComponent()
+    elif action_key == "shield":
         player[ShieldComponent] = ShieldComponent()
-        print("Shield Generator Active!")
-
-    print(f"Applied Buff: {action['buff']}!")

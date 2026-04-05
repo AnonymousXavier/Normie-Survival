@@ -1,20 +1,27 @@
 from Core import States
 from Globals import Enums
-from ECS.Components import DeathTimerComponent, SpacialComponent, HitboxComponent, EnemyTag, HealthComponent, ShieldComponent, PlayerInputTag, AnimationComponent, ArsenalComponent
+from ECS.Components import (DamageComponent, DeathTimerComponent, SpacialComponent, HitboxComponent, 
+                            EnemyTag, HealthComponent, ShieldComponent, PlayerInputTag, 
+                            AnimationComponent, ArsenalComponent, PlayerStatsComponent)
 
 def process(world: dict, spatial_grid: dict, dt: float):
     if States.PLAYER_ID not in world:
         return
 
     player = world[States.PLAYER_ID]
-    p_health = player.get(HealthComponent)
+    
+    # 1. Pull BOTH components. 
+    # HealthComponent manages i-frames. PlayerStatsComponent manages the actual math.
+    stats = player.get(PlayerStatsComponent)
+    p_health = player.get(HealthComponent) 
     p_hitbox = player.get(HitboxComponent)
-    p_grid_pos = player[SpacialComponent].grid_pos
-
-    # Inside DamageSystem.py process()
-
-    if not p_health or not p_hitbox: return
+    
+    # If the player is a tombstone, they won't have a hitbox! Skip safely.
+    if not stats or not p_health or not p_hitbox: 
+        return
+        
     p_hitbox = p_hitbox.rect
+    p_grid_pos = player[SpacialComponent].grid_pos
 
     # Recharge Shield
     if ShieldComponent in player:
@@ -29,9 +36,9 @@ def process(world: dict, spatial_grid: dict, dt: float):
     # Invincibility countdown
     if p_health.inv_timer > 0:
         p_health.inv_timer -= dt
-        return # Skip damage check while invincible
+        return 
 
-
+    # --- Spatial Grid Collision Logic ---
     for dx in [-1, 0, 1]:
         for dy in [-1, 0, 1]:
             cell = (p_grid_pos[0] + dx, p_grid_pos[1] + dy)
@@ -40,50 +47,37 @@ def process(world: dict, spatial_grid: dict, dt: float):
                 for entity_id in spatial_grid[cell]:
                     enemy = world.get(entity_id)
                     
-                    if enemy and EnemyTag in enemy :
-                        # Use enemy hitbox if they have one, else use their sprite rect
+                    if enemy and EnemyTag in enemy:
                         e_rect = enemy[HitboxComponent].rect if HitboxComponent in enemy else enemy[SpacialComponent].rect
                         
-                        # Damage mitigation
                         if p_hitbox.colliderect(e_rect):
                             if ShieldComponent in player and player[ShieldComponent].active:
                                 player[ShieldComponent].active = False
-                                p_health.inv_timer = p_health.inv_duration # Grant i-frames on shield break
+                                p_health.inv_timer = p_health.inv_duration 
                                 print("Shield Blocked Hit!")
                                 
                             else:
-                                # DEAL DAMAGE
-                                p_health.hp -= 1
+                                dealable_damage = enemy[DamageComponent].amount
+                                # 2. Subtract from the NEW current_hp stat
+                                stats.current_hp -= dealable_damage
                                 p_health.inv_timer = p_health.inv_duration
                                 
-                                print(f"Ouch! HP: {p_health.hp}/{p_health.max_hp}")
+                                # 3. Print using the new @property getter for Max HP
+                                print(f"Ouch! HP: {stats.current_hp}/{stats.final_max_hp}")
                                 
-                                if p_health.hp <= 0:
-                                    # Inside the logic where Player HP <= 0:
-
-                                    player = world[States.PLAYER_ID]
-
-                                    # 1. Strip away agency (They can no longer move)
-                                    if PlayerInputTag in player: 
-                                        del player[PlayerInputTag]
-
-                                    # 2. Strip away the arsenal (The orbiting guns stop firing)
-                                    if ArsenalComponent in player: 
-                                        del player[ArsenalComponent]
-
-                                    # 3. Strip away the hitbox (Enemies will just walk over the corpse)
-                                    if HitboxComponent in player: 
-                                        del player[HitboxComponent]
+                                if stats.current_hp <= 0:
+                                    # --- TOMBSTONING PROTOCOL ---
+                                    if PlayerInputTag in player: del player[PlayerInputTag]
+                                    if ArsenalComponent in player: del player[ArsenalComponent]
+                                    if HitboxComponent in player: del player[HitboxComponent]
 
                                     if DeathTimerComponent not in player: 
                                         player[DeathTimerComponent] = DeathTimerComponent()
 
-                                    # 4. Trigger the Death Animation
                                     if AnimationComponent in player:
                                         player[AnimationComponent].state = Enums.ANIM_STATES.DEAD
                                         player[AnimationComponent].current_frame = 0
-                                        player[AnimationComponent].speed = 0 # Lock the frame so it doesn't loop
+                                        player[AnimationComponent].speed = 0 
 
                                     print("Player Tombstoned!")
-                                return   
-                            
+                                return

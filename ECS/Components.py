@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from typing import Optional
 import pygame
 
+from Globals import Settings
+
 @dataclass(kw_only=True, slots=True)
 class SpacialComponent:
 	grid_pos: Optional[tuple] = None
@@ -58,6 +60,8 @@ class ProjectileComponent:
     dy: float
     speed: float
     damage: int
+    exact_x: float = 0.0 
+    exact_y: float = 0.0
 
 @dataclass(kw_only=True)
 class CooldownComponent:
@@ -81,14 +85,6 @@ class OrbitalComponent:
     radius: float       
     angle: float = 0.0  
     spin_speed: float = 0.0 # Degrees per second
-
-@dataclass
-class WeaponStats:
-    projectile_count: int = 3
-    spread_angle: float = 30.0  # Total arc of the cone in degrees
-    damage: int = 1
-    speed: float = 300.0
-    fire_rate: float = 1.0  # Seconds between shots
 
 @dataclass(kw_only=True, slots=True)
 class HealthComponent:
@@ -118,15 +114,6 @@ class ExperienceGemComponent:
 class CollectorComponent:
     range: float = 1.0  # Pickup radius in grid cells
 
-@dataclass(kw_only=True, slots=True)
-class PlayerStatsComponent:
-    xp: int = 0
-    level: int = 1
-    xp_to_next_level: int = 5
-
-    speed: float
-    max_hp: int
-
 @dataclass(kw_only=True)
 class UIButtonComponent:
     rect: pygame.Rect
@@ -149,13 +136,59 @@ class ShieldComponent:
     recharge_delay: float = 5.0
     timer: float = 0.0
 
-@dataclass(kw_only=True, slots=True)
-class ArsenalComponent:
-    inventory: dict
-
 @dataclass(kw_only=True)
 class DeathTimerComponent:
     time_left: float = 3.0
+
+@dataclass(kw_only=True, slots=True)
+class WeaponStats:
+    base_damage: int = 1
+    base_fire_rate: float = 1.0
+    projectile_count: int = 3
+    spread_angle: float = 15.0
+    speed: float = 35.0
+
+    def get_final_damage(self, player_damage_mult: float) -> int:
+        return int(self.base_damage * player_damage_mult)
+        
+    def get_final_fire_rate(self, player_fire_rate_mult: float) -> float:
+        return self.base_fire_rate * player_fire_rate_mult
+
+@dataclass(kw_only=True, slots=True)
+class ArsenalComponent:
+    inventory: dict = field(default_factory=dict) 
+
+@dataclass(kw_only=True, slots=True)
+class PlayerStatsComponent:
+    xp: int = 0
+    level: int = 1
+    xp_to_next_level: int = 5
+    
+    # Base Stats 
+    base_speed: float = Settings.GAME.PLAYER_SPEED
+    base_max_hp: int = Settings.GAME.DEFAULT_PLAYER_HP 
+    current_hp: int = Settings.GAME.DEFAULT_PLAYER_HP
+    
+    # Multipliers - These increase via upgrades
+    speed_mult: float = 1.0
+    hp_mult: float = 1.0
+    damage_mult: float = 1.0
+    fire_rate_mult: float = 1.0
+    
+    # The Tracker
+    upgrades_owned: dict = field(default_factory=dict)
+
+    @property
+    def final_speed(self) -> float:
+        return self.base_speed * self.speed_mult
+
+    @property
+    def final_max_hp(self) -> int:
+        return int(self.base_max_hp * self.hp_mult)
+
+@dataclass(kw_only=True, slots=True)
+class DamageComponent:
+    amount: int = 1
 
 class UITag:
     pass

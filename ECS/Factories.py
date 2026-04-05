@@ -3,7 +3,7 @@ import math
 
 from Core import States
 from Globals import Settings, Misc, Cache, Enums
-from ECS.Components import (ArsenalComponent, EnemyTag, FacingDirectionComponent, HealthComponent, HitboxComponent, PlayerStatsComponent, PowerUpTag, SpacialComponent, RenderComponent, 
+from ECS.Components import (ArsenalComponent, DamageComponent, EnemyTag, FacingDirectionComponent, HealthComponent, HitboxComponent, PlayerStatsComponent, PowerUpTag, SpacialComponent, RenderComponent, 
 	PlayerInputTag, StalkerComponent, RotationComponent, CooldownComponent, ProjectileComponent, OrbitalComponent,
 	CollectorComponent, ExperienceGemComponent, AnimationComponent, WeaponStats)
 from ECS.Components import UITag, UIButtonComponent
@@ -30,16 +30,11 @@ def spawn_player(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
 		PlayerInputTag: PlayerInputTag(),
 		FacingDirectionComponent: FacingDirectionComponent(),
 		CollectorComponent: CollectorComponent(),
-		PlayerStatsComponent: PlayerStatsComponent(speed=Settings.GAME.PLAYER_SPEED, max_hp=Settings.GAME.DEFAULT_PLAYER_HP),
+		PlayerStatsComponent: PlayerStatsComponent(),
         HealthComponent: HealthComponent(hp=Settings.GAME.DEFAULT_PLAYER_HP, max_hp=Settings.GAME.DEFAULT_PLAYER_HP),
         ArsenalComponent: ArsenalComponent(
             inventory= {
-                "shotgun": WeaponStats(
-                    damage=1, 
-                    fire_rate=1.0, 
-                    projectile_count=3, 
-                    spread_angle=15.0
-                )
+                "shotgun": WeaponStats()
             }
         ),
         HitboxComponent: HitboxComponent(
@@ -104,7 +99,8 @@ def spawn_enemy(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
         HitboxComponent: HitboxComponent(
             width=round(Settings.SPRITE.WIDTH * Settings.GAME.ENEMY_HITBOX_TO_SPRITE_RATIO), 
             height=round(Settings.SPRITE.HEIGHT * Settings.GAME.ENEMY_HITBOX_TO_SPRITE_RATIO)
-        )
+        ),
+        DamageComponent: DamageComponent(amount=1)
 	}
 
 	world[new_id] = enemy
@@ -169,6 +165,7 @@ def spawn_shotgun(world: dict, spatial_grid: dict, target_id: int, start_angle: 
 def spawn_bullet(world: dict, spatial_grid: dict, center_x: float, center_y: float, angle_deg: float, speed: float, damage: int):
     angle_rad = math.radians(-angle_deg) 
     
+    grid_speed = speed * Settings.CELLS.WIDTH
     dx = math.cos(angle_rad)
     dy = math.sin(angle_rad)
     
@@ -188,7 +185,7 @@ def spawn_bullet(world: dict, spatial_grid: dict, center_x: float, center_y: flo
             rect=pygame.Rect(spawn_x, spawn_y, 4, 4) 
         ),
         RenderComponent: RenderComponent(color=(255, 255, 0)), 
-        ProjectileComponent: ProjectileComponent(dx=dx, dy=dy, speed=speed, damage=damage)
+        ProjectileComponent: ProjectileComponent(dx=dx, dy=dy, speed=grid_speed, damage=damage, exact_x=float(spawn_x), exact_y=float(spawn_y))
     }
 
     world[new_id] = bullet

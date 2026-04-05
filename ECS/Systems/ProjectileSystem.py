@@ -18,15 +18,16 @@ def process(world: dict, spatial_grid: dict, camera: dict, delta: float):
             obj = world[obj_id]
             
             # Move the bullet
-            speed = obj[ProjectileComponent].speed
-            dx = obj[ProjectileComponent].dx
-            dy = obj[ProjectileComponent].dy
-            
-            x = obj[SpacialComponent].rect.x + (dx * speed * delta)
-            y = obj[SpacialComponent].rect.y + (dy * speed * delta)
-            
-            obj[SpacialComponent].rect.x = round(x)
-            obj[SpacialComponent].rect.y = round(y)
+            proj = obj[ProjectileComponent]
+            space = obj[SpacialComponent]
+
+            # 1. Add the movement to the TRUE float trackers
+            proj.exact_x += (proj.dx * proj.speed * delta)
+            proj.exact_y += (proj.dy * proj.speed * delta)
+
+            # 2. Snap the Pygame integer rect to the exact floats
+            space.rect.centerx = round(proj.exact_x)
+            space.rect.centery = round(proj.exact_y)
             
             # Update Grid
             old_pos = obj[SpacialComponent].grid_pos
