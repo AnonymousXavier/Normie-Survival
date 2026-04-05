@@ -15,6 +15,8 @@ from Globals import Misc
 from Globals import Settings
 from Globals.Settings import SPRITE
 
+DEBUG_FONT = pygame.font.SysFont("Arial", 12)
+
 
 def process(
     surface: pygame.Surface,
@@ -60,28 +62,58 @@ def draw_game_entities(
 
             # 3. AOE VISUAL (Underlay)
             # If this is the AOE entity itself (Orbital), give it a pulse
-            # Inside RenderingSystem.py
+            # ECS/Systems/RenderingSystem.py (Inside your AOE block)
+
             if AOEComponent in obj:
                 aoe = obj[AOEComponent]
-                # Calculate alpha: very bright right after firing (timer=0), fades as it recharges
-                # (1.0 - (aoe.timer / aoe.cooldown)) creates a fading effect
-                intensity = max(0, 1.0 - (aoe.timer / aoe.cooldown))
-                alpha = int(intensity * 100)  # Max 100 alpha
 
-                # ... (rest of your circle drawing code using this alpha)
-                radius_px = obj[AOEComponent].radius * Settings.SPRITE.WIDTH
+                # t goes from 0.0 to 1.0 as the cooldown charges
+                t = aoe.timer / aoe.cooldown
+
+                # --- 1. THE MATH: Cubic Easing ---
+                # Cubing the inverted fraction makes it drop incredibly fast.
+                # Try changing ** 3 to ** 5 for an even faster snap!
+                factor = (t) ** 3
+
+                # The absolute maximum size of the zone
+                max_radius_px = int(aoe.radius * Settings.SPRITE.WIDTH)
+
+                # The actual shrinking radius
+                current_radius = int(max_radius_px * factor)
+
+                # --- 2. PERFORMANCE: Static Surface Size ---
+                # Always make the surface the max size so the CPU doesn't panic
                 aoe_surf = pygame.Surface(
-                    (radius_px * 2, radius_px * 2), pygame.SRCALPHA
+                    (max_radius_px * 2, max_radius_px * 2), pygame.SRCALPHA
+                )
+                center_pt = (max_radius_px, max_radius_px)
+
+                # --- 3. THE VISUALS ---
+                # A. The "Threat Zone" Ghost Ring (Always visible, very faint)
+                pygame.draw.circle(
+                    aoe_surf, (255, 0, 0, 15), center_pt, max_radius_px, 1
                 )
 
-                # Red pulsing zone
-                pygame.draw.circle(
-                    aoe_surf, (255, 0, 0, alpha), (radius_px, radius_px), radius_px
-                )
-                pygame.draw.circle(
-                    aoe_surf, (255, 0, 0, alpha), (radius_px, radius_px), radius_px, 1
-                )
+                if current_radius > 0:
+                    # Fade out the alpha as it shrinks
+                    alpha = int(factor * 150)
 
+                    # B. The Shrinking Core
+                    pygame.draw.circle(
+                        aoe_surf, (255, 50, 50, alpha), center_pt, current_radius
+                    )
+
+                    # C. The "Energy Rim" (A brighter, thicker ring on the edge of the shrinking core)
+                    rim_thickness = max(1, current_radius // 4)
+                    pygame.draw.circle(
+                        aoe_surf,
+                        (255, 150, 150, alpha + 50),
+                        center_pt,
+                        current_radius,
+                        rim_thickness,
+                    )
+
+                # Blit it perfectly centered on the player
                 render_surface.blit(
                     aoe_surf, aoe_surf.get_rect(center=render_rect.center)
                 )

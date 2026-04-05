@@ -7,7 +7,6 @@ from ECS.Systems import (
     AINavigationSystem,
     AOESystem,
     AnimationStateSystem,
-    ClickingSystem,
     CollectionSystem,
     CollisionSystem,
     AimingSystem,
@@ -30,6 +29,7 @@ from ECS.Systems import (
     DebugSystem,
     MovementSystem,
     AnimationSystem,
+    BossAISystem,
 )
 from Globals import Settings, Misc
 
@@ -82,15 +82,16 @@ class Main:
 
         dt = Settings.WINDOW.CLOCK.tick(Settings.UPDATE.FPS) / 1000
 
-        InputSystem.process(States.world, events)
+        InputSystem.process(States.world, events, dt)
 
-        if not States.IS_LEVELING_UP:
+        if not States.IS_LEVELING_UP and not States.IS_PAUSED:
             States.GAME_TIME += dt
             States.BOSS_TIMER -= dt
 
             AimingSystem.process(States.world, States.spatial_grid, States.camera)
 
             AINavigationSystem.process(States.world, events)
+            BossAISystem.process(States.world, States.spatial_grid, dt)
 
             MovementSystem.process(States.world, States.spatial_grid, events, dt)
             AnimationStateSystem.process(States.world)

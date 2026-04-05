@@ -1,7 +1,16 @@
 import pygame
 from Core import States
-from ECS.Components import UIButtonComponent, UITag, StatsButtonComponent
+from ECS.Components import (
+    UIButtonComponent,
+    UITag,
+    StatsButtonComponent,
+    TextComponent,
+    SpacialComponent,
+    StatPanelComponent,
+)
 from Globals import Settings
+
+TITLE_FONT = pygame.font.SysFont("Arial", 48, bold=True)
 
 pygame.font.init()
 UI_FONT = pygame.font.SysFont("Arial", 24, bold=True)
@@ -43,6 +52,52 @@ def process(world: dict, window: pygame.Surface):
         elif UIButtonComponent in obj:
             btn = obj[UIButtonComponent]
             draw_normal_btn(obj, ui_surface)
+
+        if TextComponent in obj and SpacialComponent in obj:
+            txt_comp = obj[TextComponent]
+            rect = obj[SpacialComponent].rect
+
+            if txt_comp.is_header:
+                # Render the text
+                text_surface = TITLE_FONT.render(txt_comp.text, True, txt_comp.color)
+                # Center it within the SpacialComponent's rect
+                text_rect = text_surface.get_rect(center=(rect.centerx, rect.centery))
+                ui_surface.blit(text_surface, text_rect)
+
+        if StatPanelComponent in obj and SpacialComponent in obj:
+            panel = obj[StatPanelComponent]
+            rect = obj[SpacialComponent].rect
+
+            # 1. Background & Border
+            pygame.draw.rect(ui_surface, (20, 20, 20, 230), rect, border_radius=10)
+            pygame.draw.rect(
+                ui_surface, panel.theme_color, rect, width=2, border_radius=10
+            )
+
+            # 2. Title & Divider
+            t_surf = UI_FONT.render(panel.title, True, panel.theme_color)
+            ui_surface.blit(t_surf, (rect.x + 15, rect.y + 10))
+            pygame.draw.line(
+                ui_surface,
+                (100, 100, 100),
+                (rect.x + 10, rect.y + 40),
+                (rect.right - 10, rect.y + 40),
+            )
+
+            # 3. List the Stats!
+            y_offset = 50
+            for key, val in panel.stats.items():
+                # Key (Left aligned)
+                k_surf = DESC_FONT.render(key, True, (180, 180, 180))
+                ui_surface.blit(k_surf, (rect.x + 15, rect.y + y_offset))
+
+                # Value (Right aligned)
+                v_surf = DESC_FONT.render(val, True, (255, 255, 255))
+                ui_surface.blit(
+                    v_surf, (rect.right - v_surf.get_width() - 15, rect.y + y_offset)
+                )
+
+                y_offset += 25
 
     if not States.IS_LEVELING_UP:
         minutes, seconds = int(States.BOSS_TIMER // 60), int(States.BOSS_TIMER % 60)

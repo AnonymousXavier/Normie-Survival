@@ -1,3 +1,4 @@
+# ECS/Systems/CollectionSystem.py
 from Core import States
 from ECS.Components import (
     ExperienceGemComponent,
@@ -5,14 +6,8 @@ from ECS.Components import (
     CollectorComponent,
     PlayerStatsComponent,
 )
-from ECS.Systems import UISystem
 from ECS.Builders.LevelUpMenuBuilder import LevelUpMenuBuilder
-from Globals import Misc
-
-
-# ECS/Systems/CollectionSystem.py
-import math
-from Globals import Settings
+from Globals import Misc, Settings, Upgrades
 
 
 def process(world: dict, spatial_grid: dict, dt: float):
@@ -20,18 +15,24 @@ def process(world: dict, spatial_grid: dict, dt: float):
         return
 
     player = world[States.PLAYER_ID]
-    p_pos = player[SpacialComponent].rect.center  # Use pixel center for smooth math
+    if CollectorComponent not in player or PlayerStatsComponent not in player:
+        return
+
+    p_pos = player[SpacialComponent].rect.center
     p_stats = player[PlayerStatsComponent]
     p_range_grid = player[CollectorComponent].range
 
-    # Convert grid range to pixels for the magnet check
-    magnet_range = p_range_grid * Settings.SPRITE.WIDTH
-    collection_range = 10  # Pixels (nearly touching)
-    pull_speed = 400  # Pixels per second
+    # 1. OPTIMIZATION: Pre-calculate Squared Distances
+    magnet_range_sq = (p_range_grid * Settings.SPRITE.WIDTH) ** 2
+    collection_range_sq = 15**2  # 15 pixels squared
+    pull_speed = 400
 
-    # We still use the spatial grid to find nearby gems efficiently
     grid_r = int(p_range_grid) + 1
     p_grid_x, p_grid_y = player[SpacialComponent].grid_pos
+
+    # 2. OPTIMIZATION: The Vacuum Cap
+    MAX_PULLS_PER_FRAME = 30
+    pulls_this_frame = 0
 
     for dx in range(-grid_r, grid_r + 1):
         for dy in range(-grid_r, grid_r + 1):
@@ -39,6 +40,7 @@ def process(world: dict, spatial_grid: dict, dt: float):
             if cell not in spatial_grid:
                 continue
 
+            # Iterate over a COPY of the list since we might delete gems
             for gem_id in list(spatial_grid[cell]):
                 gem = world.get(gem_id)
                 if not gem or ExperienceGemComponent not in gem:
@@ -47,13 +49,14 @@ def process(world: dict, spatial_grid: dict, dt: float):
                 g_rect = gem[SpacialComponent].rect
                 g_center = g_rect.center
 
-                # Calculate distance
                 dist_x = p_pos[0] - g_center[0]
                 dist_y = p_pos[1] - g_center[1]
-                distance = math.sqrt(dist_x**2 + dist_y**2)
 
-                if distance < magnet_range:
-                    if distance < collection_range:
+                # Compare Squared Distances! (No math.sqrt)
+                dist_sq = dist_x**2 + dist_y**2
+
+                if dist_sq < magnet_range_sq:
+                    if dist_sq < collection_range_sq:
                         # --- PHASE 2: COLLECT ---
                         p_stats.xp += gem[ExperienceGemComponent].value
                         Misc.remove_entity_from_grid(gem_id, cell, spatial_grid)
@@ -63,15 +66,22 @@ def process(world: dict, spatial_grid: dict, dt: float):
                             level_up(p_stats, world)
                     else:
                         # --- PHASE 1: MAGNET PULL ---
-                        # Move gem toward player
+                        if pulls_this_frame >= MAX_PULLS_PER_FRAME:
+                            continue  # Stop pulling if we hit the CPU limit
+
+                        pulls_this_frame += 1
+
+                        # We still need one sqrt here to normalize the vector for movement,
+                        # but we ONLY do it for gems that are actually moving.
+                        distance = dist_sq**0.5
+
                         move_x = (dist_x / distance) * pull_speed * dt
                         move_y = (dist_y / distance) * pull_speed * dt
 
-                        # Update precise pixel position
                         g_rect.x += move_x
                         g_rect.y += move_y
 
-                        # Sync grid position if it crosses cell boundaries
+                        # Sync grid position
                         new_grid_pos = (
                             int(g_rect.x // Settings.SPRITE.WIDTH),
                             int(g_rect.y // Settings.SPRITE.HEIGHT),
@@ -84,21 +94,17 @@ def process(world: dict, spatial_grid: dict, dt: float):
                             gem[SpacialComponent].grid_pos = new_grid_pos
 
 
-def level_up(p_stats, world):
-    # 1. Increment Level
-    p_stats.level += 1
-    p_stats.xp -= p_stats.xp_to_next_level
-    p_stats.xp_to_next_level = int(p_stats.xp_to_next_level * 1.4)
+def level_up(stats, world):
+    # Standard Level Up Logic
+    stats.level += 1
+    stats.xp -= stats.xp_to_next_level  # Keep rollover XP!
+    stats.xp_to_next_level = int(stats.xp_to_next_level * 1.5)
 
-    # 2. Generate the NEW formatted options
-    player_entity = world[States.PLAYER_ID]
-    options = UISystem.get_level_up_options(
-        player_entity
-    )  # Now returns 'title' and 'reward'
+    print(f"✨ LEVEL UP! Reached Level {stats.level}")
 
-    # 3. Build Menu (No more KeyError)
-    LevelUpMenuBuilder.build(options)
+    # Get options and build UI
+    options = Upgrades.get_random_upgrades(stats.upgrades_owned)
+    LevelUpMenuBuilder.build(options, stats.level)
 
-    # 4. Pause Game
+    # Pause the world
     States.IS_LEVELING_UP = True
-    print(f"✨ LEVEL {p_stats.level} REACHED!")

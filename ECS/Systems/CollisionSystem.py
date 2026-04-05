@@ -39,7 +39,11 @@ def process(world: dict, spatial_grid: dict):
 
                                 # Projectile always dies on hit
                                 entities_to_delete.add(proj_id)
-                                break
+                                break  # Breaks the target_id loop
+
+                    # FIX: If the bullet hit something, stop checking the other cells!
+                    if proj_id in entities_to_delete:
+                        break
 
     # Cleanup
     # (Keep your existing cleanup loop here...)

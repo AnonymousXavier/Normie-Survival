@@ -60,10 +60,29 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
     if is_dead:
         if BossTag in target:
             print("🏆 BOSS DEFEATED: CLEARING THE HORDE!")
-            # Use 'e_id' and 'e_obj' to avoid overwriting our 'target' reference
+
             for e_id, e_obj in list(world.items()):
                 if EnemyTag in e_obj and BossTag not in e_obj:
                     g_pos = e_obj[SpacialComponent].grid_pos
+
+                    # --- NEW: HORDE CLEAR LOOT ---
+                    # Check if it was a Red Cyclops or a Green Cyclops
+                    is_strong = StrongerEnemyTag in e_obj
+
+                    # Calculate normal value, then cut it in half!
+                    normal_gem_value = get_gem_value(5 if is_strong else 1)
+                    reduced_gem_value = max(1, normal_gem_value // 2)
+
+                    # Add random scatter so they look natural
+                    rx = g_pos[0] + (randint(-5, 5) / 10.0)
+                    ry = g_pos[1] + (randint(-5, 5) / 10.0)
+
+                    Factories.spawn_gem(
+                        world, spatial_grid, rx, ry, value=reduced_gem_value
+                    )
+                    # -----------------------------
+
+                    # Now delete the enemy
                     Misc.remove_entity_from_grid(e_id, g_pos, spatial_grid)
                     del world[e_id]
 
@@ -76,7 +95,7 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
                 value=get_gem_value(100),
             )
 
-            # Bosses are deleted immediately to stop them from dealing contact damage
+            # Clean up the Boss immediately
             Misc.remove_entity_from_grid(
                 target_id, target[SpacialComponent].grid_pos, spatial_grid
             )

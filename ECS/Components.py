@@ -200,6 +200,20 @@ class ArsenalComponent:
 
 
 @dataclass(kw_only=True, slots=True)
+class StatPanelComponent:
+    title: str
+    stats: dict = field(default_factory=dict)  # A dictionary of Key-Value strings
+    theme_color: tuple = (255, 255, 255)
+
+
+@dataclass(kw_only=True, slots=True)
+class TextComponent:
+    text: str
+    color: tuple = (255, 255, 255)
+    is_header: bool = False  # Helps the renderer pick a font size
+
+
+@dataclass(kw_only=True, slots=True)
 class PlayerStatsComponent:
     xp: int = 0
     level: int = 1
@@ -232,6 +246,21 @@ class PlayerStatsComponent:
 @dataclass(kw_only=True, slots=True)
 class DamageComponent:
     amount: int = 1
+
+
+@dataclass(kw_only=True, slots=True)
+class BossAIComponent:
+    state: str = "CHASE"  # States: CHASE, GRAVITY_WELL, DASH_WINDUP, DASHING
+    state_timer: float = 0.0
+    ability_cooldown: float = 6.0
+    ability_timer: float = 0.0
+    dash_target_x: float = 0.0
+    dash_target_y: float = 0.0
+
+
+@dataclass(kw_only=True, slots=True)
+class StunComponent:
+    timer: float = 0.0
 
 
 class UITag:

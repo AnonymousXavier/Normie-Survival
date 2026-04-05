@@ -5,6 +5,7 @@ from Core import States
 from Globals import Settings, Misc, Cache, Enums
 from ECS.Components import (
     ArsenalComponent,
+    BossAIComponent,
     BossTag,
     DamageComponent,
     EnemyTag,
@@ -230,6 +231,7 @@ def spawn_boss(world, spatial_grid, mult: float):
             height=round(50 * Settings.GAME.ENEMY_HITBOX_TO_SPRITE_RATIO),
         ),
         DamageComponent: DamageComponent(amount=int(1 * mult)),
+        BossAIComponent: BossAIComponent(),
     }
 
     world[new_id] = boss
