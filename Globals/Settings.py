@@ -1,6 +1,10 @@
 import pygame
 
+pygame.init()
+
 class WINDOW:
+	DESKTOP_WIDTH, DESKTOP_HEIGHT = pygame.display.get_desktop_sizes()[0]
+
 	MIN_WIDTH = 500
 	MIN_HEIGHT = 500
 	

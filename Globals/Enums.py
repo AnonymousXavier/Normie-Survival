@@ -1,14 +1,15 @@
 class DIRECTIONS:
-	LEFT = (-1, 0)
-	RIGHT = (1, 0)
-	UP = (0, -1)
-	DOWN = (0, 1)
+    LEFT = (-1, 0)
+    RIGHT = (1, 0)
+    UP = (0, -1)
+    DOWN = (0, 1)
 
 class EVENT_TYPES:
-	MOVEMENT_INTENT = 0
+    MOUSE_CLICK = 0
+    MOVEMENT_INTENT = 1
 
 class POWERUPS:
-	SHOTGUN = 0
+    SHOTGUN = 0
 
 class ANIM_STATES:
     IDLE = 0
@@ -16,7 +17,6 @@ class ANIM_STATES:
     DEAD = 2
 
 class ANIM_DIRS:
-    # Standard Ninja Pack Row Mappings
     DOWN = 0
     UP = 1
     LEFT = 2

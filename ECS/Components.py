@@ -4,29 +4,35 @@ import pygame
 
 from Globals import Settings
 
+
 @dataclass(kw_only=True, slots=True)
 class SpacialComponent:
-	grid_pos: Optional[tuple] = None
-	rect: pygame.Rect
+    grid_pos: Optional[tuple] = None
+    rect: pygame.Rect
+
 
 @dataclass(kw_only=True, slots=True)
 class RenderComponent:
-	color: tuple
-	sprite: Optional[pygame.Surface] = None
-	base_sprite: Optional[pygame.Surface] = None # Stores the original image
-	z_index: int = 0
+    color: tuple
+    sprite: Optional[pygame.Surface] = None
+    base_sprite: Optional[pygame.Surface] = None  # Stores the original image
+    z_index: int = 0
+
 
 @dataclass(kw_only=True)
 class StalkerComponent:
-	target_id: int
+    target_id: int
+
 
 @dataclass(kw_only=True)
 class AnimationStateComponent:
-	state: int
+    state: int
+
 
 @dataclass(kw_only=True)
 class AIStateComponent:
-	state: int
+    state: int
+
 
 @dataclass(kw_only=True, slots=True)
 class AnimationComponent:
@@ -36,23 +42,28 @@ class AnimationComponent:
     direction: int = 0
     speed: float = 8.0  # Frames per second
 
+
 @dataclass(kw_only=True)
 class VelocityComponent:
-	position: tuple
-	target: tuple
-	speed: float
+    position: tuple
+    target: tuple
+    speed: float
+
 
 @dataclass(kw_only=True)
 class PathFindingComponent:
-	path: Optional[list] = field(default_factory=list)
+    path: Optional[list] = field(default_factory=list)
+
 
 @dataclass(kw_only=True)
 class PowerUpComponent:
-	_id: int
+    _id: int
+
 
 @dataclass(kw_only=True)
 class RotationComponent:
-	angle: float = 0.0 
+    angle: float = 0.0
+
 
 @dataclass(kw_only=True)
 class ProjectileComponent:
@@ -60,18 +71,21 @@ class ProjectileComponent:
     dy: float
     speed: float
     damage: int
-    exact_x: float = 0.0 
+    exact_x: float = 0.0
     exact_y: float = 0.0
+
 
 @dataclass(kw_only=True)
 class CooldownComponent:
-    fire_rate: float # How many seconds between shots
+    fire_rate: float  # How many seconds between shots
     time_since_last_shot: float = 0.0
+
 
 @dataclass(kw_only=True, slots=True)
 class FacingDirectionComponent:
-    dx: float = 1.0 # Default facing right
+    dx: float = 1.0  # Default facing right
     dy: float = 0.0
+
 
 @dataclass(kw_only=True, slots=True)
 class WeaponComponent:
@@ -79,12 +93,14 @@ class WeaponComponent:
     is_firing: bool = False
     aim_angle: float = 0.0
 
+
 @dataclass(kw_only=True)
 class OrbitalComponent:
-    target_id: int     
-    radius: float       
-    angle: float = 0.0  
-    spin_speed: float = 0.0 # Degrees per second
+    target_id: int
+    radius: float
+    angle: float = 0.0
+    spin_speed: float = 0.0  # Degrees per second
+
 
 @dataclass(kw_only=True, slots=True)
 class HealthComponent:
@@ -93,26 +109,30 @@ class HealthComponent:
     inv_duration: float = 0.5  # Half a second of invincibility
     inv_timer: float = 0.0
 
+
 @dataclass(kw_only=True, slots=True)
 class HitboxComponent:
     width: int
     height: int
     offset_x: int = 0
     offset_y: int = 0
-    
+
     # This will be updated by the system to match world position
     rect: pygame.Rect = field(init=False)
 
     def __post_init__(self):
         self.rect = pygame.Rect(0, 0, self.width, self.height)
 
+
 @dataclass(kw_only=True, slots=True)
 class ExperienceGemComponent:
     value: int = 1  # How much XP it gives
 
+
 @dataclass(kw_only=True, slots=True)
 class CollectorComponent:
     range: float = 1.0  # Pickup radius in grid cells
+
 
 @dataclass(kw_only=True)
 class UIButtonComponent:
@@ -123,6 +143,7 @@ class UIButtonComponent:
     hover_color: tuple = (100, 100, 100)
     is_hovered: bool = False
 
+
 @dataclass(kw_only=True, slots=True)
 class AOEComponent:
     radius: float = 2.0  # In grid cells
@@ -130,15 +151,21 @@ class AOEComponent:
     cooldown: float = 3.0
     timer: float = 0.0
 
+
 @dataclass(kw_only=True, slots=True)
 class ShieldComponent:
-    active: bool = True
+    extra_hp_ratio: float = 0.0
+    max_hits: int = 1
+    current_hits: int = 1
     recharge_delay: float = 5.0
     timer: float = 0.0
+    active: bool = True
+
 
 @dataclass(kw_only=True)
 class DeathTimerComponent:
     time_left: float = 3.0
+
 
 @dataclass(kw_only=True, slots=True)
 class WeaponStats:
@@ -150,31 +177,34 @@ class WeaponStats:
 
     def get_final_damage(self, player_damage_mult: float) -> int:
         return int(self.base_damage * player_damage_mult)
-        
+
     def get_final_fire_rate(self, player_fire_rate_mult: float) -> float:
         return self.base_fire_rate * player_fire_rate_mult
 
+
 @dataclass(kw_only=True, slots=True)
 class ArsenalComponent:
-    inventory: dict = field(default_factory=dict) 
+    inventory: dict = field(default_factory=dict)
+
 
 @dataclass(kw_only=True, slots=True)
 class PlayerStatsComponent:
     xp: int = 0
     level: int = 1
     xp_to_next_level: int = 5
-    
-    # Base Stats 
+
+    # Base Stats
     base_speed: float = Settings.GAME.PLAYER_SPEED
-    base_max_hp: int = Settings.GAME.DEFAULT_PLAYER_HP 
+    base_max_hp: int = Settings.GAME.DEFAULT_PLAYER_HP
     current_hp: int = Settings.GAME.DEFAULT_PLAYER_HP
-    
+
     # Multipliers - These increase via upgrades
     speed_mult: float = 1.0
     hp_mult: float = 1.0
     damage_mult: float = 1.0
     fire_rate_mult: float = 1.0
-    
+    regen_per_second: float = 0.0
+
     # The Tracker
     upgrades_owned: dict = field(default_factory=dict)
 
@@ -186,20 +216,31 @@ class PlayerStatsComponent:
     def final_max_hp(self) -> int:
         return int(self.base_max_hp * self.hp_mult)
 
+
 @dataclass(kw_only=True, slots=True)
 class DamageComponent:
     amount: int = 1
 
+
 class UITag:
     pass
-class PlayerInputTag: 
-	pass
-class FloorTag: 
-	pass
-class EnemyTag: 
-	pass
-class PowerUpTag:
-	pass
-class PickupTag:
+
+
+class PlayerInputTag:
     pass
 
+
+class FloorTag:
+    pass
+
+
+class EnemyTag:
+    pass
+
+
+class PowerUpTag:
+    pass
+
+
+class PickupTag:
+    pass

@@ -1,7 +1,7 @@
 from Core import States
 from ECS.Components import ExperienceGemComponent, SpacialComponent, CollectorComponent, PlayerStatsComponent
-from Globals import Misc
-from ECS import Factories 
+from ECS.Builders.LevelUpMenuBuilder import LevelUpMenuBuilder
+from Globals import Misc, Upgrades
 
 def process(world: dict, spatial_grid: dict):    
     if States.PLAYER_ID not in world:
@@ -37,12 +37,18 @@ def process(world: dict, spatial_grid: dict):
                                 level_up(p_stats, world)
 
 def level_up(stats, world):
+    # 1. Standard Level Up Logic
     stats.level += 1
-    stats.xp = 0
+    stats.xp = 0 # Or keep the remainder if you're fancy
     stats.xp_to_next_level = int(stats.xp_to_next_level * 1.5)
 
     print(f"LEVEL UP! Reached Level {stats.level}")
     
-    # FREEZE THE GAME AND SPAWN MENU
+    # 2. Get the Options
+    options = Upgrades.get_random_upgrades(stats.upgrades_owned)
+    
+    # 3. Build the UI using our dynamic builder!
+    LevelUpMenuBuilder.build(options)
+    
+    # 4. Pause the world so the menu can be interacted with
     States.IS_LEVELING_UP = True
-    Factories.spawn_upgrade_menu(world)
