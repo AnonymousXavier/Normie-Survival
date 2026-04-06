@@ -47,4 +47,5 @@ class SPRITES:
         GEM = SpriteLoader.load_sprite("Assets/Sprites/Gem.png")
 
     class WEAPONS:
-        SHOTGUN = SpriteLoader.load_sprite("Assets/Sprites/Weapons/shutgun.png")
+        SHOTGUN = SpriteLoader.load_sprite("Assets/Sprites/Weapons/shotgun.png")
+        SNIPER = SpriteLoader.load_sprite("Assets/Sprites/Weapons/sniper.png")

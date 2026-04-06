@@ -50,7 +50,11 @@ class GAME:
 
     XP_GEM_SIZE = (8, 8)
     TIME_ELAPSED_TO_ENEMIES_RATIO = 5  # Increase by n every min
-    BOSS_SPAWN_TIME_DELAY = 60  # secs
+    BOSS_SPAWN_TIME_DELAY = 150  # secs
+
+
+class GAME_OPTIONS:
+    SOUND = False
 
 
 class COLOURS:

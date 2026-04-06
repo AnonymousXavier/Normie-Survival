@@ -5,6 +5,8 @@ from ECS.Components import (
     HealthComponent,
     ShieldComponent,
     AOEComponent,
+    TrailComponent,
+    ExperienceGemComponent,
 )
 from ECS.Systems import CameraSystem
 
@@ -198,6 +200,39 @@ def draw_game_entities(
                         (255, 200, 0),
                         (bx, xp_by, bar_w * xp_perc, bar_h),
                     )
+            # --- XP GEM TRAILS ---
+            if TrailComponent in obj and ExperienceGemComponent in obj:
+                trail = obj[TrailComponent]
+                # 1. Record the current center position
+                center_pos = obj[SpacialComponent].rect.center
+                trail.history.append(center_pos)
+
+                # 2. Keep the history at the max length
+                if len(trail.history) > trail.length:
+                    trail.history.pop(0)
+
+                # 3. Draw the "Dart" Trail (Only if it's currently moving fast/vacuuming)
+                # We check if history[0] is different from the current pos to ensure it's moving
+                if len(trail.history) > 1 and trail.history[0] != center_pos:
+                    # Draw from oldest (tail) to newest (head), getting thicker
+                    for i in range(len(trail.history) - 1):
+                        start_pt = trail.history[i]
+                        end_pt = trail.history[i + 1]
+
+                        # Offset points by camera
+                        cam_start = (
+                            start_pt[0] - camera_rect.x,
+                            start_pt[1] - camera_rect.y,
+                        )
+                        cam_end = (end_pt[0] - camera_rect.x, end_pt[1] - camera_rect.y)
+
+                        # Tail is 1px, gets thicker as it approaches the gem
+                        thickness = max(1, i)
+
+                        # Draw a nice bright cyan/blue line for XP
+                        pygame.draw.line(
+                            render_surface, (0, 255, 255), cam_start, cam_end, thickness
+                        )
 
             # Hit Flash
             if HealthComponent in obj and obj[HealthComponent].hit_timer > 0:

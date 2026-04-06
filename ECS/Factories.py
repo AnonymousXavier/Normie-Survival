@@ -7,6 +7,7 @@ from ECS.Components import (
     ArsenalComponent,
     BossAIComponent,
     BossTag,
+    CameraShakeComponent,
     DamageComponent,
     EnemyTag,
     FacingDirectionComponent,
@@ -25,6 +26,8 @@ from ECS.Components import (
     CollectorComponent,
     ExperienceGemComponent,
     AnimationComponent,
+    TrailComponent,
+    WeaponComponent,
     WeaponStats,
     StrongerEnemyTag,
 )
@@ -34,6 +37,7 @@ def new_camera(cams_topleft: tuple, cams_size: tuple, target_id: int):
     return {
         SpacialComponent: SpacialComponent(rect=pygame.Rect(cams_topleft, cams_size)),
         StalkerComponent: StalkerComponent(target_id=target_id),
+        CameraShakeComponent: CameraShakeComponent(intensity=0.0),
     }
 
 
@@ -110,6 +114,12 @@ def spawn_normal_enemy(
     new_id = States.NEXT_ENTITY_ID
     States.NEXT_ENTITY_ID += 1
 
+    # --- LEVEL SCALING ---
+    p_lvl = world[States.PLAYER_ID][PlayerStatsComponent].level
+    hp_scale = p_lvl**0.6  # Adjust this fraction if it gets too hard
+    dmg_scale = p_lvl**0.75
+    final_hp = int(Settings.GAME.DEFAULT_ENEMY_HP * mult) * hp_scale
+
     enemy = {
         SpacialComponent: SpacialComponent(
             grid_pos=(grid_x, grid_y),
@@ -124,8 +134,8 @@ def spawn_normal_enemy(
         RenderComponent: RenderComponent(color=Settings.DEBUG.ENEMY_COLOR),
         EnemyTag: EnemyTag(),
         HealthComponent: HealthComponent(
-            hp=int(Settings.GAME.DEFAULT_ENEMY_HP * mult),
-            max_hp=int(Settings.GAME.DEFAULT_ENEMY_HP * mult),
+            hp=(final_hp),
+            max_hp=final_hp,
         ),
         HitboxComponent: HitboxComponent(
             width=round(
@@ -135,7 +145,7 @@ def spawn_normal_enemy(
                 Settings.SPRITE.HEIGHT * Settings.GAME.ENEMY_HITBOX_TO_SPRITE_RATIO
             ),
         ),
-        DamageComponent: DamageComponent(amount=int(1 * mult)),
+        DamageComponent: DamageComponent(amount=int(1 * mult * dmg_scale)),
     }
 
     world[new_id] = enemy
@@ -152,6 +162,12 @@ def spawn_stronger_enemy(
     new_id = States.NEXT_ENTITY_ID
     States.NEXT_ENTITY_ID += 1
 
+    # --- LEVEL SCALING ---
+    p_lvl = world[States.PLAYER_ID][PlayerStatsComponent].level
+    hp_scale = p_lvl**0.6  # Adjust this fraction if it gets too hard
+    dmg_scale = p_lvl**0.75
+    final_hp = int(Settings.GAME.DEFAULT_ENEMY_HP * mult) * hp_scale
+
     enemy = {
         SpacialComponent: SpacialComponent(
             grid_pos=(grid_x, grid_y),
@@ -167,8 +183,8 @@ def spawn_stronger_enemy(
         EnemyTag: EnemyTag(),
         StrongerEnemyTag: StrongerEnemyTag(),
         HealthComponent: HealthComponent(
-            hp=int(Settings.GAME.DEFAULT_ENEMY_HP * mult) * 5,
-            max_hp=int(Settings.GAME.DEFAULT_ENEMY_HP * mult) * 5,
+            hp=int(final_hp) * 5,
+            max_hp=int(final_hp) * 5,
         ),
         HitboxComponent: HitboxComponent(
             width=round(
@@ -178,7 +194,7 @@ def spawn_stronger_enemy(
                 Settings.SPRITE.HEIGHT * Settings.GAME.ENEMY_HITBOX_TO_SPRITE_RATIO
             ),
         ),
-        DamageComponent: DamageComponent(amount=int(1 * mult)),
+        DamageComponent: DamageComponent(amount=int(1 * dmg_scale * mult)),
     }
 
     world[new_id] = enemy
@@ -264,6 +280,7 @@ def spawn_gem(
             color=(0, 0, 0), sprite=Cache.SPRITES.ITEMS.GEM
         ),
         ExperienceGemComponent: ExperienceGemComponent(value=value),
+        TrailComponent: TrailComponent(length=6),
     }
 
     world[new_id] = gem
@@ -285,7 +302,7 @@ def spawn_shotgun(
     shotgun = {
         SpacialComponent: SpacialComponent(
             grid_pos=(0, 0),
-            rect=pygame.Rect(0, 0, Settings.SPRITE.WIDTH, Settings.SPRITE.HEIGHT),
+            rect=pygame.Rect((0, 0), (Cache.SPRITES.WEAPONS.SHOTGUN.get_size())),
         ),
         RenderComponent: RenderComponent(
             color=Settings.DEBUG.PLAYER_COLOR,
@@ -301,12 +318,88 @@ def spawn_shotgun(
         ),
         RotationComponent: RotationComponent(),
         PowerUpTag: PowerUpTag(),
+        WeaponComponent: WeaponComponent(weapon_type="shotgun"),
     }
 
     world[new_id] = shotgun
     Misc.register_entity_in_grid(new_id, (0, 0), spatial_grid)
 
     return new_id
+
+
+def spawn_sniper(
+    world: dict,
+    spatial_grid: dict,
+    target_id: int,
+    start_angle: float = 0.0,
+    initial_cooldown_offset=0.0,
+):
+    new_id = States.NEXT_ENTITY_ID
+    States.NEXT_ENTITY_ID += 1
+
+    sniper = {
+        SpacialComponent: SpacialComponent(
+            grid_pos=(0, 0),
+            rect=pygame.Rect((0, 0), (Cache.SPRITES.WEAPONS.SNIPER.get_size())),
+        ),
+        RenderComponent: RenderComponent(
+            color=(255, 0, 0),
+            sprite=Cache.SPRITES.WEAPONS.SNIPER,  # You can change this when you draw a sniper sprite
+            base_sprite=Cache.SPRITES.WEAPONS.SNIPER,
+        ),
+        OrbitalComponent: OrbitalComponent(
+            target_id=target_id, radius=1.5, angle=start_angle, spin_speed=0.0
+        ),
+        CooldownComponent: CooldownComponent(
+            fire_rate=2.0, time_since_last_shot=initial_cooldown_offset
+        ),
+        RotationComponent: RotationComponent(),
+        WeaponComponent: WeaponComponent(weapon_type="sniper"),
+        PowerUpTag: PowerUpTag(),
+    }
+    world[new_id] = sniper
+    Misc.register_entity_in_grid(new_id, (0, 0), spatial_grid)
+
+
+def refresh_weapon(world, spatial_grid, player_id, weapon_type, count):
+    # 1. Delete all physical entities of THIS specific weapon type
+    to_delete = [
+        eid
+        for eid, e in world.items()
+        if PowerUpTag in e
+        and WeaponComponent in e
+        and e[WeaponComponent].weapon_type == weapon_type
+    ]
+    for eid in to_delete:
+        Misc.remove_entity_from_grid(
+            eid, world[eid][SpacialComponent].grid_pos, spatial_grid
+        )
+        del world[eid]
+
+    # 2. Respawn with stagger
+    player = world[player_id]
+    w_stats = player[ArsenalComponent].inventory[weapon_type]
+    stagger_interval = w_stats.base_fire_rate / count
+    spacing = 360 / count
+
+    for i in range(count):
+        start_offset = i * stagger_interval
+        if weapon_type == "shotgun":
+            spawn_shotgun(
+                world,
+                spatial_grid,
+                player_id,
+                start_angle=i * spacing,
+                initial_cooldown_offset=start_offset,
+            )
+        elif weapon_type == "sniper":
+            spawn_sniper(
+                world,
+                spatial_grid,
+                player_id,
+                start_angle=(i * spacing) + 45,
+                initial_cooldown_offset=start_offset,
+            )
 
 
 def spawn_bullet(
@@ -353,38 +446,3 @@ def spawn_bullet(
     Misc.register_entity_in_grid(new_id, (grid_x, grid_y), spatial_grid)
 
     return new_id
-
-
-# ECS/Factories.py
-
-
-def refresh_player_shotguns(world, spatial_grid, player_id, count):
-    # 1. Find and delete current shotguns
-    to_delete = [eid for eid, e in world.items() if PowerUpTag in e]
-    for eid in to_delete:
-        # (existing cleanup logic...)
-        pass
-
-    # 2. Calculate Stagger Timing
-    # Get the fire rate from the Arsenal component to know the total cycle time
-    player = world[player_id]
-    sg_stats = player[ArsenalComponent].inventory["shotgun"]
-    fire_rate = sg_stats.base_fire_rate
-
-    # The delay between each gun firing
-    stagger_interval = fire_rate / count
-
-    # 3. Respawn with orbital spacing AND timing offsets
-    spacing = 360 / count
-    for i in range(count):
-        # Gun i gets a head start on its cooldown
-        # Gun 0 starts at 0.0, Gun 1 starts at stagger_interval, etc.
-        start_offset = i * stagger_interval
-
-        spawn_shotgun(
-            world,
-            spatial_grid,
-            player_id,
-            start_angle=i * spacing,
-            initial_cooldown_offset=start_offset,
-        )

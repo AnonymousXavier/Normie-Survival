@@ -2,7 +2,7 @@ import pygame
 
 from Core import States
 from ECS import Factories
-from ECS.Components import SpacialComponent
+from ECS.Components import SpacialComponent, ArsenalComponent
 from ECS.Systems import (
     AINavigationSystem,
     AOESystem,
@@ -43,12 +43,19 @@ class Main:
         States.PLAYER_ID = Factories.spawn_player(
             States.world, States.spatial_grid, 0, 0
         )
+
+        # --- INITIALIZE THE PRIMARY WEAPON ---
+        player = States.world[States.PLAYER_ID]
+        primary_weapon = player[ArsenalComponent].primary_weapon
+
+        # Tell the factory to physically spawn 1 copy of whatever the primary weapon is
+        Factories.refresh_weapon(
+            States.world, States.spatial_grid, States.PLAYER_ID, primary_weapon, 1
+        )
+
         States.camera = Factories.new_camera(
             (0, 0), Settings.CAMERA.SIZE, States.PLAYER_ID
         )
-
-        # Spawn two shotguns, opposite to each other, rotating at 90 degrees per second
-        UISystem.apply_upgrade("shotgun", States.world[States.PLAYER_ID])
 
     def draw(self):
         Settings.window.fill(Settings.COLOURS.BLACK)

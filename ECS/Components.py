@@ -5,6 +5,17 @@ import pygame
 from Globals import Settings
 
 
+@dataclass
+class CameraShakeComponent:
+    intensity: float = 0.0
+
+
+@dataclass
+class TrailComponent:
+    length: int = 5
+    history: list = field(default_factory=list)
+
+
 @dataclass(kw_only=True, slots=True)
 class SpacialComponent:
     grid_pos: Optional[tuple] = None
@@ -92,14 +103,16 @@ class WeaponComponent:
     weapon_type: str = "shotgun"
     is_firing: bool = False
     aim_angle: float = 0.0
+    has_target: bool = False
 
 
-@dataclass(kw_only=True)
+@dataclass
 class OrbitalComponent:
     target_id: int
     radius: float
-    angle: float = 0.0
-    spin_speed: float = 0.0  # Degrees per second
+    angle: float
+    spin_speed: float
+    offset_angle: float = 0.0  # <-- ADD THIS
 
 
 @dataclass(kw_only=True, slots=True)
@@ -194,9 +207,10 @@ class WeaponStats:
         return self.base_fire_rate * player_fire_rate_mult
 
 
-@dataclass(kw_only=True, slots=True)
+@dataclass
 class ArsenalComponent:
-    inventory: dict = field(default_factory=dict)
+    inventory: dict
+    primary_weapon: str = "shotgun"  # Defaults to shotgun for now
 
 
 @dataclass(kw_only=True, slots=True)

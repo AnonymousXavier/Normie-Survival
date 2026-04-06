@@ -1,8 +1,10 @@
 import random
 
-# Globals/Upgrades.py
 UPGRADE_POOL = {
-    "shotgun": {"text": "Shotgun Mastery", "max_level": 40},
+    "primary_weapon": {
+        "text": "Weapon Mastery",
+        "max_level": 40,
+    },  # Replaces "shotgun" and "sniper"
     "defensives": {"text": "Defensive Systems", "max_level": 20},
     "passives": {"text": "Fitness Survival", "max_level": 20},
     "pickup": {"text": "Magnetism", "max_level": 10},

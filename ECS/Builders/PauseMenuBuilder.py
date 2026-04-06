@@ -142,53 +142,29 @@ class PauseMenuBuilder:
         }
         PauseMenuBuilder._ui_ids.append(opt_bg_id)
 
-        # --- 4. SPAWN FAKE SLIDER BUTTONS ---
-        # Example: [ < ]  MUSIC: 70%  [ > ]
+        # --- 4. SPAWN TOGGLE BUTTON ---
         btn_y = start_y + 80
-        btn_size = 40
+        btn_w = 200
+        btn_h = 50
 
-        left_btn_id = States.NEXT_ENTITY_ID
+        sound_btn_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1
 
-        world[left_btn_id] = {
-            UITag: UITag(),
-            UIButtonComponent: UIButtonComponent(
-                rect=pygame.Rect(right_start_x + 30, btn_y, btn_size, btn_size),
-                text="<",
-                action={"type": "VOL_DOWN", "channel": "music"},
-            ),
-        }
-        PauseMenuBuilder._ui_ids.append(left_btn_id)
+        sound_text = "SOUND: ON" if Settings.GAME_OPTIONS.SOUND else "SOUND: OFF"
+        color = (50, 200, 50) if Settings.GAME_OPTIONS.SOUND else (200, 50, 50)
 
-        right_btn_id = States.NEXT_ENTITY_ID
-        States.NEXT_ENTITY_ID += 1
-
-        world[right_btn_id] = {
+        world[sound_btn_id] = {
             UITag: UITag(),
             UIButtonComponent: UIButtonComponent(
                 rect=pygame.Rect(
-                    right_start_x + panel_w - 30 - btn_size, btn_y, btn_size, btn_size
+                    right_start_x + (panel_w // 2) - (btn_w // 2), btn_y, btn_w, btn_h
                 ),
-                text=">",
-                action={"type": "VOL_UP", "channel": "music"},
+                text=sound_text,
+                color=color,
+                action={"type": "TOGGLE_SOUND"},
             ),
         }
-        PauseMenuBuilder._ui_ids.append(right_btn_id)
-
-        # Display the actual Volume Text in the center
-        text_id = States.NEXT_ENTITY_ID
-        States.NEXT_ENTITY_ID += 1
-
-        # Center the text rect between the two buttons
-        text_rect = pygame.Rect(right_start_x + 70, btn_y, panel_w - 140, btn_size)
-        world[text_id] = {
-            UITag: UITag(),
-            SpacialComponent: SpacialComponent(rect=text_rect),
-            TextComponent: TextComponent(
-                text="MUSIC: 70%", color=(255, 255, 255), is_header=True
-            ),
-        }
-        PauseMenuBuilder._ui_ids.append(text_id)
+        PauseMenuBuilder._ui_ids.append(sound_btn_id)
 
     @staticmethod
     def destroy(world: dict):

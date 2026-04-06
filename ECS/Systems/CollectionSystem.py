@@ -25,7 +25,7 @@ def process(world: dict, spatial_grid: dict, dt: float):
     # 1. OPTIMIZATION: Pre-calculate Squared Distances
     magnet_range_sq = (p_range_grid * Settings.SPRITE.WIDTH) ** 2
     collection_range_sq = 15**2  # 15 pixels squared
-    pull_speed = 400
+    pull_speed = 250
 
     grid_r = int(p_range_grid) + 1
     p_grid_x, p_grid_y = player[SpacialComponent].grid_pos
