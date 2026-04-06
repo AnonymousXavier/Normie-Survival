@@ -258,7 +258,7 @@ def spawn_boss(world, spatial_grid, mult: float):
         BossTag: BossTag(),
         # Bosses need massive HP to resist your Shotgun build
         HealthComponent: HealthComponent(hp=boss_hp, max_hp=boss_hp),
-        RenderComponent: RenderComponent(color=(255, 0, 0)),  # Red Menace
+        RenderComponent: RenderComponent(color=(255, 0, 0), z_index=2),  # Red Menace
         AnimationComponent: AnimationComponent(
             frames={Enums.ANIM_STATES.WALK: Cache.SPRITES.ENEMY.BOSS},
             state=Enums.ANIM_STATES.WALK,
@@ -276,6 +276,8 @@ def spawn_boss(world, spatial_grid, mult: float):
     world[new_id] = boss
     Misc.register_entity_in_grid(new_id, (spawn_x, spawn_y), spatial_grid)
     print("🚨 BOSS SPAWNED! 🚨")
+
+    return new_id
 
 
 def spawn_gem(
@@ -300,7 +302,7 @@ def spawn_gem(
             rect=pygame.Rect((round(x + w // 2), round(y + 4)), (w, h)),
         ),
         RenderComponent: RenderComponent(
-            color=(0, 0, 0), sprite=Cache.SPRITES.ITEMS.GEM
+            color=(0, 0, 0), sprite=Cache.SPRITES.ITEMS.GEM, z_index=-1
         ),
         ExperienceGemComponent: ExperienceGemComponent(value=value),
         TrailComponent: TrailComponent(length=6),
@@ -309,6 +311,8 @@ def spawn_gem(
     world[new_id] = gem
     # Always register using the integer grid_pos
     Misc.register_entity_in_grid(new_id, (grid_x, grid_y), spatial_grid)
+
+    return new_id
 
 
 def spawn_shotgun(
@@ -411,16 +415,25 @@ def refresh_weapon(world, spatial_grid, player_id, weapon_type, count):
     player = world[player_id]
     w_stats = player[ArsenalComponent].inventory[weapon_type]
     stagger_interval = w_stats.base_fire_rate / count
-    spacing = 360 / count
+
+    # --- YOUR FIX: THE TIGHT FAN SPREAD ---
+    tight_spacing_deg = 20.0  # Adjust this to change how close the guns stack!
 
     for i in range(count):
         start_offset = i * stagger_interval
+
+        # Centers the fan perfectly.
+        # 1 Gun = 0
+        # 2 Guns = -10, +10
+        # 3 Guns = -20, 0, +20
+        fan_angle = (i - (count - 1) / 2.0) * tight_spacing_deg
+
         if weapon_type == "shotgun":
             spawn_shotgun(
                 world,
                 spatial_grid,
                 player_id,
-                start_angle=i * spacing,
+                start_angle=fan_angle,
                 initial_cooldown_offset=start_offset,
             )
         elif weapon_type == "sniper":
@@ -428,7 +441,7 @@ def refresh_weapon(world, spatial_grid, player_id, weapon_type, count):
                 world,
                 spatial_grid,
                 player_id,
-                start_angle=(i * spacing) + 45,
+                start_angle=fan_angle,
                 initial_cooldown_offset=start_offset,
             )
 

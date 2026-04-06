@@ -2,7 +2,8 @@ import pygame
 
 from Core import States
 from ECS import Factories
-from ECS.Components import SpacialComponent, ArsenalComponent
+from ECS.Components import SpacialComponent, DeathTimerComponent
+from ECS.Builders.GameOverMenuBuilder import GameOverMenuBuilder
 from ECS.Systems import (
     AINavigationSystem,
     AOESystem,
@@ -90,6 +91,12 @@ class Main:
             UIHoverSystem.process(States.world)
             return  # <-- CRITICAL: Stops the rest of the engine from running!
 
+        # --- VICTORY STATE GUARDRAIL ---
+        if States.CURRENT_STATE == "VICTORY":
+            UISystem.process_events(States.world, events)
+            UIHoverSystem.process(States.world)
+            return  # Stops the swarm from moving while you look at your score!
+
         # --- PLAYING STATE ---
         if not States.IS_LEVELING_UP and not States.IS_PAUSED:
             States.GAME_TIME += dt
@@ -123,6 +130,20 @@ class Main:
             FlowFieldSystem.flow_field = FlowFieldSystem.create_flow_field(
                 States.world[States.PLAYER_ID][SpacialComponent].grid_pos
             )
+
+            # --- THE TOMBSTONE COUNTDOWN ---
+            player = States.world.get(States.PLAYER_ID)
+            if player and DeathTimerComponent in player:
+                player[DeathTimerComponent].time_left -= dt
+
+                if player[DeathTimerComponent].time_left <= 0:
+                    print("💀 DEATH ANIMATION FINISHED! TRIGGERING GAME OVER!")
+                    States.CURRENT_STATE = "GAME_OVER"
+
+                    GameOverMenuBuilder.build(States.world)
+
+                    # Remove the component so this if-statement doesn't trigger again
+                    del player[DeathTimerComponent]
 
             if States.BOSS_TIMER <= 0:
                 self.trigger_boss_spawn()

@@ -15,8 +15,10 @@ from ECS.Components import (
     AnimationComponent,
     BossTag,
     StrongerEnemyTag,
+    MegaGemTag,
 )
 from ECS import Factories
+from ECS.Builders.VictoryMenuBuilder import VictoryMenuBuilder
 
 
 # ECS/Systems/CombatSystem.py
@@ -65,7 +67,6 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
                 if EnemyTag in e_obj and BossTag not in e_obj:
                     g_pos = e_obj[SpacialComponent].grid_pos
 
-                    # --- NEW: HORDE CLEAR LOOT ---
                     # Check if it was a Red Cyclops or a Green Cyclops
                     is_strong = StrongerEnemyTag in e_obj
 
@@ -82,20 +83,20 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
                     Factories.spawn_gem(
                         world, spatial_grid, rx, ry, value=reduced_gem_value
                     )
-                    # -----------------------------
 
                     # Now delete the enemy
                     Misc.remove_entity_from_grid(e_id, g_pos, spatial_grid)
                     del world[e_id]
 
             # Spawn Mega Gem exactly where the boss was
-            Factories.spawn_gem(
+            mega_gem_id = Factories.spawn_gem(
                 world,
                 spatial_grid,
                 target[SpacialComponent].grid_pos[0],
                 target[SpacialComponent].grid_pos[1],
                 value=get_gem_value(Settings.GAME.BOSS_STRENGTH_MULTIPLIER),
             )
+            world[mega_gem_id][MegaGemTag] = MegaGemTag()
 
             # Clean up the Boss immediately
             Misc.remove_entity_from_grid(

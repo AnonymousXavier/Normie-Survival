@@ -42,7 +42,7 @@ def process(world: dict, spatial_grid: dict, dt: float):
 
                 # Pull strength: Drags player at 120 pixels/sec
                 if dist > 10 and dist < Settings.SPRITE.WIDTH * 15:
-                    pull_speed = 120 * dt
+                    pull_speed = 180 * dt
                     p_rect.x += (dist_x / dist) * pull_speed
                     p_rect.y += (dist_y / dist) * pull_speed
 
@@ -63,7 +63,7 @@ def process(world: dict, spatial_grid: dict, dt: float):
 
                 if boss_ai.state_timer <= 0:
                     boss_ai.state = "DASH_WINDUP"
-                    boss_ai.state_timer = 0.5  # 0.5 seconds to dodge!
+                    boss_ai.state_timer = 0.3
                     boss_ai.dash_target_x = p_pos[0]
                     boss_ai.dash_target_y = p_pos[1]
                     print("🔴 BOSS IS DASHING!")
@@ -90,7 +90,7 @@ def process(world: dict, spatial_grid: dict, dt: float):
                     # Dash complete
                     b_rect.center = (boss_ai.dash_target_x, boss_ai.dash_target_y)
                     boss_ai.state = "CHASE"
-                    boss_ai.ability_cooldown = 10.0  # Wait 6 secs before next combo
+                    boss_ai.ability_cooldown = 3.5  # Wait 6 secs before next combo
 
                 # Update boss spatial grid
                 Misc.remove_entity_from_grid(

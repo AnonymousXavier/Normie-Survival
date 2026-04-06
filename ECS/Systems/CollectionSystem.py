@@ -5,6 +5,7 @@ from ECS.Components import (
     SpacialComponent,
     CollectorComponent,
     PlayerStatsComponent,
+    MegaGemTag,
 )
 from ECS.Builders.LevelUpMenuBuilder import LevelUpMenuBuilder
 from Globals import Misc, Settings, Upgrades
@@ -59,11 +60,26 @@ def process(world: dict, spatial_grid: dict, dt: float):
                     if dist_sq < collection_range_sq:
                         # --- PHASE 2: COLLECT ---
                         p_stats.xp += gem[ExperienceGemComponent].value
+
+                        # CHECK FOR THE WIN CONDITION
+                        if MegaGemTag in world[gem_id]:
+                            print("💎 MEGA GEM COLLECTED! TRIGGERING VICTORY!")
+                            States.CURRENT_STATE = "VICTORY"
+                            from ECS.Builders.VictoryMenuBuilder import (
+                                VictoryMenuBuilder,
+                            )
+
+                            VictoryMenuBuilder.build(world)
+
                         Misc.remove_entity_from_grid(gem_id, cell, spatial_grid)
                         del world[gem_id]
 
-                        if p_stats.xp >= p_stats.xp_to_next_level:
-                            level_up(p_stats, world)
+                        if (
+                            States.CURRENT_STATE != "VICTORY"
+                            and States.CURRENT_STATE != "GAME_OVER"
+                        ):
+                            if p_stats.xp >= p_stats.xp_to_next_level:
+                                level_up(p_stats)
                     else:
                         # --- PHASE 1: MAGNET PULL ---
                         if pulls_this_frame >= MAX_PULLS_PER_FRAME:
@@ -94,11 +110,10 @@ def process(world: dict, spatial_grid: dict, dt: float):
                             gem[SpacialComponent].grid_pos = new_grid_pos
 
 
-def level_up(stats, world):
-    # Standard Level Up Logic
+def level_up(stats):
     stats.level += 1
-    stats.xp -= stats.xp_to_next_level  # Keep rollover XP!
-    stats.xp_to_next_level = int(stats.xp_to_next_level * 1.5)
+    stats.xp -= stats.xp_to_next_level  # Keep rollover XP
+    stats.xp_to_next_level = int(stats.xp_to_next_level * 1.25)
 
     print(f"✨ LEVEL UP! Reached Level {stats.level}")
 

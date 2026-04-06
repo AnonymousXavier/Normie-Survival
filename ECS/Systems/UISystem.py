@@ -70,6 +70,9 @@ def process_events(world: dict, events: list):
             States.camera = Factories.new_camera(
                 (0, 0), Settings.CAMERA.SIZE, States.PLAYER_ID
             )
+        elif event.get("type") == "QUIT_GAME":
+            print("Game Exited via Victory Screen")
+            States.GAME_RUNNING = False
 
 
 def get_level_up_options(player: dict) -> list:

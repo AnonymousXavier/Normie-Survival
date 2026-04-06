@@ -309,3 +309,7 @@ class BossTag:
 
 class StrongerEnemyTag:
     pass
+
+
+class MegaGemTag:
+    pass
