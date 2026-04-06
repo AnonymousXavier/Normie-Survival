@@ -40,38 +40,32 @@ dt = 0
 
 class Main:
     def __init__(self) -> None:
-        States.PLAYER_ID = Factories.spawn_player(
-            States.world, States.spatial_grid, 0, 0
-        )
+        # Just boot the Menu Builder! The UISystem handles the rest later.
+        from ECS.Builders.MainMenuBuilder import MainMenuBuilder
 
-        # --- INITIALIZE THE PRIMARY WEAPON ---
-        player = States.world[States.PLAYER_ID]
-        primary_weapon = player[ArsenalComponent].primary_weapon
-
-        # Tell the factory to physically spawn 1 copy of whatever the primary weapon is
-        Factories.refresh_weapon(
-            States.world, States.spatial_grid, States.PLAYER_ID, primary_weapon, 1
-        )
-
-        States.camera = Factories.new_camera(
-            (0, 0), Settings.CAMERA.SIZE, States.PLAYER_ID
-        )
+        MainMenuBuilder.build(States.world)
 
     def draw(self):
         Settings.window.fill(Settings.COLOURS.BLACK)
-        RenderingSystem.process(
-            surface=Settings.window,
-            world=States.world,
-            visible_entities=visible_entities,
-            camera=States.camera,
-            dt=dt,
-        )
+
+        # Guardrail: Only render the actual game world if we are playing
+        if States.CURRENT_STATE == "PLAYING":
+            RenderingSystem.process(
+                surface=Settings.window,
+                world=States.world,
+                visible_entities=visible_entities,
+                camera=States.camera,
+                dt=dt,
+            )
+
+        # The UI always renders (so we can see the menu!)
         UIRenderingSystem.process(States.world, Settings.window)
 
     def handle_debug(self):
+        if States.CURRENT_STATE != "PLAYING":
+            return
         debug = {}
         debug_spatial_grid = {}
-
         DebugSystem.process(debug, debug_spatial_grid)
         DebugRenderingSystem.process(
             surface=Settings.window,
@@ -86,17 +80,22 @@ class Main:
         global dt
 
         events = []
-
         dt = Settings.WINDOW.CLOCK.tick(Settings.UPDATE.FPS) / 1000
 
         InputSystem.process(States.world, events, dt)
 
+        # --- MENU STATE GUARDRAIL ---
+        if States.CURRENT_STATE == "MENU":
+            UISystem.process_events(States.world, events)
+            UIHoverSystem.process(States.world)
+            return  # <-- CRITICAL: Stops the rest of the engine from running!
+
+        # --- PLAYING STATE ---
         if not States.IS_LEVELING_UP and not States.IS_PAUSED:
             States.GAME_TIME += dt
             States.BOSS_TIMER -= dt
 
             AimingSystem.process(States.world, States.spatial_grid, States.camera)
-
             AINavigationSystem.process(States.world, events)
             BossAISystem.process(States.world, States.spatial_grid, dt)
 
@@ -113,7 +112,6 @@ class Main:
             AOESystem.process(States.world, States.spatial_grid, dt)
             CollectionSystem.process(States.world, States.spatial_grid, dt)
 
-            # Run collisions after movement but before spawning new things
             DamageSystem.process(States.world, States.spatial_grid, dt)
             CollisionSystem.process(States.world, States.spatial_grid)
             PickUpSystem.process(States.world, States.spatial_grid)
@@ -133,6 +131,7 @@ class Main:
         UISystem.process_events(States.world, events)
         UIHoverSystem.process(States.world)
 
+        # Moved inside so it doesn't crash trying to find the camera during the menu!
         visible_entities = Misc.get_entities_on_screen(
             States.spatial_grid, CameraSystem.get_boundary_of(States.camera)
         )

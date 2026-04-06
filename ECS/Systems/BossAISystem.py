@@ -90,7 +90,7 @@ def process(world: dict, spatial_grid: dict, dt: float):
                     # Dash complete
                     b_rect.center = (boss_ai.dash_target_x, boss_ai.dash_target_y)
                     boss_ai.state = "CHASE"
-                    boss_ai.ability_cooldown = 6.0  # Wait 6 secs before next combo
+                    boss_ai.ability_cooldown = 10.0  # Wait 6 secs before next combo
 
                 # Update boss spatial grid
                 Misc.remove_entity_from_grid(

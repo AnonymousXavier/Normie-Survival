@@ -1,7 +1,7 @@
 # ECS/Systems/CombatSystem.py
 from random import randint
 from Core import States
-from Globals import Enums, Misc
+from Globals import Enums, Misc, Settings
 from ECS.Components import (
     HealthComponent,
     ShieldComponent,
@@ -70,7 +70,9 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
                     is_strong = StrongerEnemyTag in e_obj
 
                     # Calculate normal value, then cut it in half!
-                    normal_gem_value = get_gem_value(5 if is_strong else 1)
+                    normal_gem_value = get_gem_value(
+                        Settings.GAME.STRONGER_ENEMIES_MULTIPLIER if is_strong else 1
+                    )
                     reduced_gem_value = max(1, normal_gem_value // 2)
 
                     # Add random scatter so they look natural
@@ -92,7 +94,7 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
                 spatial_grid,
                 target[SpacialComponent].grid_pos[0],
                 target[SpacialComponent].grid_pos[1],
-                value=get_gem_value(100),
+                value=get_gem_value(Settings.GAME.BOSS_STRENGTH_MULTIPLIER),
             )
 
             # Clean up the Boss immediately
@@ -104,7 +106,9 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
         elif EnemyTag in target:
             # Handle standard enemy death
             is_strong = StrongerEnemyTag in target
-            gem_value = get_gem_value(5 if is_strong else 1)
+            gem_value = get_gem_value(
+                Settings.GAME.STRONGER_ENEMIES_MULTIPLIER if is_strong else 1
+            )
 
             death_pos = target[SpacialComponent].grid_pos
             rx = death_pos[0] + (randint(-5, 5) / 10.0)

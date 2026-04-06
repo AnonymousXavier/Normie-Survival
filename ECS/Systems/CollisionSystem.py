@@ -27,19 +27,21 @@ def process(world: dict, spatial_grid: dict):
                             enemy_rect = world[target_id][SpacialComponent].rect
 
                             if proj_rect.colliderect(enemy_rect):
-                                # Call centralized logic!
-                                damage = world[proj_id][ProjectileComponent].damage
+                                proj = world[proj_id][ProjectileComponent]
                                 CombatSystem.take_damage(
                                     world,
                                     spatial_grid,
                                     target_id,
-                                    damage,
+                                    proj.damage,
                                     entities_to_delete,
                                 )
 
-                                # Projectile always dies on hit
-                                entities_to_delete.add(proj_id)
-                                break  # Breaks the target_id loop
+                                # --- THE PIERCE FIX ---
+                                proj.pierce -= 1
+                                if proj.pierce <= 0:
+                                    entities_to_delete.add(proj_id)
+
+                                break  # Break the inner loop so it only damages 1 enemy per frame
 
                     # FIX: If the bullet hit something, stop checking the other cells!
                     if proj_id in entities_to_delete:

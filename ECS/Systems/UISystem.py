@@ -39,6 +39,37 @@ def process_events(world: dict, events: list):
 
             PauseMenuBuilder.destroy(world)
             PauseMenuBuilder.build(world)
+        elif event.get("type") == "START_GAME":
+            chosen_weapon = event.get("weapon")
+            print(f"Starting run with: {chosen_weapon}")
+
+            # 1. Clear the menu UI
+            from ECS.Builders.MainMenuBuilder import MainMenuBuilder
+
+            MainMenuBuilder.destroy(world)
+
+            # 2. Set the engine state to playing!
+            States.CURRENT_STATE = "PLAYING"
+
+            # 3. Build the Game World (Moved from main.py!)
+            from ECS import Factories
+            from ECS.Components import ArsenalComponent
+            from Globals import Settings
+
+            States.PLAYER_ID = Factories.spawn_player(
+                States.world, States.spatial_grid, 0, 0, chosen_weapon
+            )
+
+            player_ent = States.world[States.PLAYER_ID]
+            player_ent[ArsenalComponent].primary_weapon = chosen_weapon
+
+            Factories.refresh_weapon(
+                States.world, States.spatial_grid, States.PLAYER_ID, chosen_weapon, 1
+            )
+
+            States.camera = Factories.new_camera(
+                (0, 0), Settings.CAMERA.SIZE, States.PLAYER_ID
+            )
 
 
 def get_level_up_options(player: dict) -> list:
@@ -72,14 +103,13 @@ def get_level_up_options(player: dict) -> list:
     return formatted_options
 
 
-# ECS/Systems/UISystem.py
-
-
 def apply_upgrade(action_key: str, player: dict):
     stats = player[PlayerStatsComponent]
     # Update tracker
     stats.upgrades_owned[action_key] = stats.upgrades_owned.get(action_key, 0) + 1
     lvl = stats.upgrades_owned[action_key]
+
+    print(lvl)
 
     # --- 1. FITNESS SURVIVAL (Passives) ---
     if action_key == "passives":
@@ -93,9 +123,15 @@ def apply_upgrade(action_key: str, player: dict):
         if AOEComponent not in player:
             player[AOEComponent] = AOEComponent()
         aoe = player[AOEComponent]
-        aoe.radius = 2.0 + (lvl * 0.3)
-        aoe.damage = 2 + (lvl * 1)
-        aoe.cooldown = 3.0 / (1 + (lvl * 0.1))  # Harmonic scaling!
+
+        # Bigger base radius, faster growth
+        aoe.radius = 2.0 + (lvl * 0.4)
+
+        # Massive damage scaling so it stays relevant
+        aoe.damage = 5 + (lvl * 2)
+
+        # THE FIX: Flat cooldown reduction. Drops by 0.25s every level. Caps at 0.4 seconds!
+        aoe.cooldown = max(0.4, 3.0 - (lvl * 0.25))
 
         # Handle Shield (Unlocks at Level 3 Defensive)
         if lvl >= 3:
@@ -112,26 +148,36 @@ def apply_upgrade(action_key: str, player: dict):
 
     # --- 4. PRIMARY WEAPON MASTERY ---
     elif action_key == "primary_weapon":
-        # Check what weapon the player is actually holding
         w_type = player[ArsenalComponent].primary_weapon
         w_stats = player[ArsenalComponent].inventory[w_type]
 
         # Apply specific scaling based on the chosen weapon
         if w_type == "shotgun":
-            w_stats.base_fire_rate = 1.0 / (1 + (lvl * 0.15))
-            w_stats.base_damage = 1 + (lvl // 2)
-            new_count = 1 + (lvl // 4)
+            # Flat reduction: drops cooldown by 0.08s every level. Caps at a blazing 0.15s.
+            w_stats.base_fire_rate = max(0.15, 1.0 - (lvl * 0.08))
+
+            # Flat addition: +1 Damage EVERY level. No dead levels.
+            w_stats.base_damage = 1 + lvl
+
+            # Flat addition: +1 Pellet EVERY level. It becomes a wall of lead.
+            w_stats.projectile_count = 3 + lvl
+
+            # Lowered threshold: Spawns a new physical gun every 3 levels (Lv 3 = 2 guns, Lv 6 = 3 guns)
+            new_count = 1 + (lvl // 3)
 
         elif w_type == "sniper":
-            w_stats.base_damage = 10 + (lvl * 3)
-            w_stats.base_fire_rate = 2.5 / (1 + (lvl * 0.1))
+            w_stats.base_damage = 15 + (lvl * 5)
+            w_stats.base_fire_rate = max(0.8, 2.5 - (lvl * 0.15))
+
+            # Sniper shoots 1 heavy round, but it PIERCES!
+            w_stats.projectile_count = 1
+            w_stats.pierce = 1 + lvl
+
+            # Physical orbiting guns: Adds 1 extra sniper every 5 levels
             new_count = 1 + (lvl // 5)
 
         else:
-            # Fallback for future weapons so the game doesn't crash
             new_count = 1
-
-        from ECS import Factories
 
         Factories.refresh_weapon(
             States.world, States.spatial_grid, States.PLAYER_ID, w_type, new_count

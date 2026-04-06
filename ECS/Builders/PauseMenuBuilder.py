@@ -48,20 +48,30 @@ class PauseMenuBuilder:
 
         # --- POPULATE ARSENAL ---
         guns = {}
-        if arsenal and "shotgun" in arsenal.inventory:
-            sg = arsenal.inventory["shotgun"]
-            # Use your built-in methods to calculate the TRUE damage and fire rate
+        wep_lvl = 0
+        if arsenal and arsenal.primary_weapon in arsenal.inventory:
+            p_wep = arsenal.primary_weapon
+            w_stats = arsenal.inventory[p_wep]
+
             d_mult = p_stats.damage_mult if p_stats else 1.0
             fr_mult = p_stats.fire_rate_mult if p_stats else 1.0
 
-            guns["Damage"] = str(sg.get_final_damage(d_mult))
-            guns["Fire Rate"] = f"{sg.get_final_fire_rate(fr_mult):.2f}s"
+            guns["Damage"] = str(w_stats.get_final_damage(d_mult))
+            guns["Fire Rate"] = f"{w_stats.get_final_fire_rate(fr_mult):.2f}s"
 
-            # Calculate gun count based on the upgrade logic
-            sg_lvl = p_stats.upgrades_owned.get("shotgun", 0) if p_stats else 0
-            guns["Gun Count"] = str(1 + (sg_lvl // 4))
-            guns["Proj. Speed"] = f"{sg.speed:.0f}"
-            guns["Spread"] = f"{sg.spread_angle:.0f}°"
+            # --- THE FIX: USE THE NEW UPGRADE KEY ---
+            wep_lvl = p_stats.upgrades_owned.get("primary_weapon", 0) if p_stats else 0
+
+            # Calculate physical gun count dynamically based on the active weapon
+            if p_wep == "shotgun":
+                guns["Gun Count"] = str(1 + (wep_lvl // 4))
+            elif p_wep == "sniper":
+                guns["Gun Count"] = str(1 + (wep_lvl // 5))
+            else:
+                guns["Gun Count"] = "1"
+
+            guns["Proj. Speed"] = f"{w_stats.speed:.0f}"
+            guns["Spread"] = f"{w_stats.spread_angle:.0f}°"
 
         # --- POPULATE UTILITY ---
         utility = {}
@@ -121,7 +131,8 @@ class PauseMenuBuilder:
 
         # Spawn the 3 Stats blocks on the LEFT
         spawn_panel("VITALS", vitals, (50, 255, 100), 0)
-        spawn_panel("ARSENAL", guns, (255, 150, 50), panel_h + padding)
+        # wep_lvl was already calculated in the POPULATE ARSENAL block above!
+        spawn_panel(f"ARSENAL (LVL {wep_lvl})", guns, (255, 150, 50), panel_h + padding)
         spawn_panel("UTILITY", utility, (50, 150, 255), (panel_h + padding) * 2)
 
         # --- 3. BUILD OPTIONS PANEL (Right Side) ---

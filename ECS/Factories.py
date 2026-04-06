@@ -41,11 +41,32 @@ def new_camera(cams_topleft: tuple, cams_size: tuple, target_id: int):
     }
 
 
-def spawn_player(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
+def spawn_player(
+    world: dict, spatial_grid: dict, grid_x: int, grid_y: int, primary_weapon: str
+):
     x, y = grid_x * Settings.SPRITE.WIDTH, grid_y * Settings.SPRITE.HEIGHT
 
     new_id = States.NEXT_ENTITY_ID
     States.NEXT_ENTITY_ID += 1
+
+    if primary_weapon == "sniper":
+        starting_stats = WeaponStats(
+            base_damage=15,
+            base_fire_rate=2.5,
+            projectile_count=1,
+            spread_angle=0.0,
+            speed=50.0,  # Fast bullet
+            pierce=2,  # Starts with pierce!
+        )
+    else:  # Default to Shotgun
+        starting_stats = WeaponStats(
+            base_damage=1,
+            base_fire_rate=1.0,
+            projectile_count=3,
+            spread_angle=15.0,
+            speed=35.0,
+            pierce=1,
+        )
 
     player = {
         SpacialComponent: SpacialComponent(
@@ -60,7 +81,9 @@ def spawn_player(world: dict, spatial_grid: dict, grid_x: int, grid_y: int):
         HealthComponent: HealthComponent(
             hp=Settings.GAME.DEFAULT_PLAYER_HP, max_hp=Settings.GAME.DEFAULT_PLAYER_HP
         ),
-        ArsenalComponent: ArsenalComponent(inventory={"shotgun": WeaponStats()}),
+        ArsenalComponent: ArsenalComponent(
+            inventory={primary_weapon: starting_stats}, primary_weapon=primary_weapon
+        ),
         HitboxComponent: HitboxComponent(
             width=round(
                 Settings.SPRITE.WIDTH * Settings.GAME.PLAYER_HITBOX_TO_SPRITE_RATIO
@@ -116,8 +139,7 @@ def spawn_normal_enemy(
 
     # --- LEVEL SCALING ---
     p_lvl = world[States.PLAYER_ID][PlayerStatsComponent].level
-    hp_scale = p_lvl**0.6  # Adjust this fraction if it gets too hard
-    dmg_scale = p_lvl**0.75
+    hp_scale = p_lvl**Settings.GAME.PLAYER_LEVEL_TO_BOSS_HEALTH_EXPONENT
     final_hp = int(Settings.GAME.DEFAULT_ENEMY_HP * mult) * hp_scale
 
     enemy = {
@@ -145,7 +167,7 @@ def spawn_normal_enemy(
                 Settings.SPRITE.HEIGHT * Settings.GAME.ENEMY_HITBOX_TO_SPRITE_RATIO
             ),
         ),
-        DamageComponent: DamageComponent(amount=int(1 * mult * dmg_scale)),
+        DamageComponent: DamageComponent(amount=int(1 * mult)),
     }
 
     world[new_id] = enemy
@@ -164,8 +186,7 @@ def spawn_stronger_enemy(
 
     # --- LEVEL SCALING ---
     p_lvl = world[States.PLAYER_ID][PlayerStatsComponent].level
-    hp_scale = p_lvl**0.6  # Adjust this fraction if it gets too hard
-    dmg_scale = p_lvl**0.75
+    hp_scale = p_lvl**Settings.GAME.PLAYER_LEVEL_TO_BOSS_HEALTH_EXPONENT
     final_hp = int(Settings.GAME.DEFAULT_ENEMY_HP * mult) * hp_scale
 
     enemy = {
@@ -183,8 +204,8 @@ def spawn_stronger_enemy(
         EnemyTag: EnemyTag(),
         StrongerEnemyTag: StrongerEnemyTag(),
         HealthComponent: HealthComponent(
-            hp=int(final_hp) * 5,
-            max_hp=int(final_hp) * 5,
+            hp=int(final_hp) * Settings.GAME.STRONGER_ENEMIES_MULTIPLIER,
+            max_hp=int(final_hp) * Settings.GAME.STRONGER_ENEMIES_MULTIPLIER,
         ),
         HitboxComponent: HitboxComponent(
             width=round(
@@ -194,7 +215,7 @@ def spawn_stronger_enemy(
                 Settings.SPRITE.HEIGHT * Settings.GAME.ENEMY_HITBOX_TO_SPRITE_RATIO
             ),
         ),
-        DamageComponent: DamageComponent(amount=int(1 * dmg_scale * mult)),
+        DamageComponent: DamageComponent(amount=int(1 * mult)),
     }
 
     world[new_id] = enemy
@@ -224,7 +245,10 @@ def spawn_boss(world, spatial_grid, mult: float):
     boss_rect = pygame.Rect(0, 0, boss_w, boss_h)
     boss_rect.center = (tile_center_x, tile_center_y)
 
-    boss_hp = int((100 * mult) * (p_lvl**1.2))
+    boss_hp = int(
+        (Settings.GAME.BOSS_STRENGTH_MULTIPLIER * mult)
+        * (p_lvl**Settings.GAME.PLAYER_LEVEL_TO_BOSS_HEALTH_EXPONENT)
+    )
 
     boss = {
         SpacialComponent: SpacialComponent(
@@ -235,7 +259,6 @@ def spawn_boss(world, spatial_grid, mult: float):
         # Bosses need massive HP to resist your Shotgun build
         HealthComponent: HealthComponent(hp=boss_hp, max_hp=boss_hp),
         RenderComponent: RenderComponent(color=(255, 0, 0)),  # Red Menace
-        # ... (Add Movement/AI)
         AnimationComponent: AnimationComponent(
             frames={Enums.ANIM_STATES.WALK: Cache.SPRITES.ENEMY.BOSS},
             state=Enums.ANIM_STATES.WALK,
@@ -311,7 +334,11 @@ def spawn_shotgun(
         ),
         # Pass the new dynamic variables here!
         OrbitalComponent: OrbitalComponent(
-            target_id=target_id, radius=1.0, angle=start_angle, spin_speed=spin_speed
+            target_id=target_id,
+            radius=1.0,
+            angle=start_angle,
+            spin_speed=spin_speed,
+            offset_angle=start_angle,
         ),
         CooldownComponent: CooldownComponent(
             fire_rate=1.0, time_since_last_shot=initial_cooldown_offset
@@ -344,11 +371,15 @@ def spawn_sniper(
         ),
         RenderComponent: RenderComponent(
             color=(255, 0, 0),
-            sprite=Cache.SPRITES.WEAPONS.SNIPER,  # You can change this when you draw a sniper sprite
+            sprite=Cache.SPRITES.WEAPONS.SNIPER,
             base_sprite=Cache.SPRITES.WEAPONS.SNIPER,
         ),
         OrbitalComponent: OrbitalComponent(
-            target_id=target_id, radius=1.5, angle=start_angle, spin_speed=0.0
+            target_id=target_id,
+            radius=1.0,
+            angle=start_angle,
+            spin_speed=0.0,
+            offset_angle=start_angle,
         ),
         CooldownComponent: CooldownComponent(
             fire_rate=2.0, time_since_last_shot=initial_cooldown_offset
@@ -410,6 +441,7 @@ def spawn_bullet(
     angle_deg: float,
     speed: float,
     damage: int,
+    pierce: int = 1,
 ):
     angle_rad = math.radians(-angle_deg)
 
@@ -439,6 +471,7 @@ def spawn_bullet(
             damage=damage,
             exact_x=float(spawn_x),
             exact_y=float(spawn_y),
+            pierce=pierce,
         ),
     }
 

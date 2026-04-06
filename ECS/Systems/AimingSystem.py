@@ -51,21 +51,6 @@ def process(world: dict, spatial_grid: dict, camera: dict):
                 aim_dx = ex - gx
                 aim_dy = ey - gy
 
-                angle_rad = math.atan2(-aim_dy, aim_dx)
-                angle_deg = math.degrees(angle_rad)
-
-                current_angle = obj[RotationComponent].angle
-
-                # --- NEW: DIRECTIONAL ORBITING ---
-                # Only rotate if we actually found a target
-            if target_enemy_id:
-                obj[WeaponComponent].has_target = True
-                ex = world[target_enemy_id][SpacialComponent].rect.centerx
-                ey = world[target_enemy_id][SpacialComponent].rect.centery
-
-                aim_dx = ex - gx
-                aim_dy = ey - gy
-
                 # 1. Get the actual target angle
                 target_angle_deg = math.degrees(math.atan2(-aim_dy, aim_dx))
                 current_angle = obj[RotationComponent].angle

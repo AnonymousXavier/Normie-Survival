@@ -84,6 +84,7 @@ class ProjectileComponent:
     damage: int
     exact_x: float = 0.0
     exact_y: float = 0.0
+    pierce: int = 1
 
 
 @dataclass(kw_only=True)
@@ -199,6 +200,7 @@ class WeaponStats:
     projectile_count: int = 3
     spread_angle: float = 15.0
     speed: float = 35.0
+    pierce: int = 1
 
     def get_final_damage(self, player_damage_mult: float) -> int:
         return int(self.base_damage * player_damage_mult)

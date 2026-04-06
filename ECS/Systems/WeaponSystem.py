@@ -75,5 +75,12 @@ def process(world: dict, spatial_grid: dict, delta: float):
 
                 for angle in angles:
                     Factories.spawn_bullet(
-                        world, spatial_grid, cx, cy, angle, w_stats.speed, bullet_dmg
+                        world,
+                        spatial_grid,
+                        cx,
+                        cy,
+                        angle,
+                        w_stats.speed,
+                        bullet_dmg,
+                        w_stats.pierce,
                     )

@@ -25,8 +25,8 @@ def process(world: dict, spatial_grid: dict, dt: float):
 
 
 def get_difficulty_mult():
-    # Time factor: +0.1 every minute
-    time_factor = States.GAME_TIME / 60.0 * 0.1
+    # Time factor: +0.1 every 2 minute
+    time_factor = States.GAME_TIME / 120.0 * 0.1
     # Kill factor: +0.05 every 50 kills
     kill_factor = (States.KILLS_COUNT // 50) * 0.05
 
