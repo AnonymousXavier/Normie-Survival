@@ -7,6 +7,7 @@ from ECS.Components import (
     TextComponent,
     SpacialComponent,
     StatPanelComponent,
+    UIImageComponent,
 )
 from Globals import Settings
 
@@ -57,12 +58,30 @@ def process(world: dict, window: pygame.Surface):
             txt_comp = obj[TextComponent]
             rect = obj[SpacialComponent].rect
 
+            # Choose the font based on the header flag
             if txt_comp.is_header:
-                # Render the text
                 text_surface = TITLE_FONT.render(txt_comp.text, True, txt_comp.color)
-                # Center it within the SpacialComponent's rect
-                text_rect = text_surface.get_rect(center=(rect.centerx, rect.centery))
-                ui_surface.blit(text_surface, text_rect)
+            else:
+                # RENDER NORMAL TEXT
+                text_surface = UI_FONT.render(txt_comp.text, True, txt_comp.color)
+
+            # Center and draw it
+            text_rect = text_surface.get_rect(center=(rect.centerx, rect.centery))
+            ui_surface.blit(text_surface, text_rect)
+
+        # --- NEW: RENDER UI IMAGES ---
+        if UIImageComponent in obj and SpacialComponent in obj:
+            img_comp = obj[UIImageComponent]
+            rect = obj[SpacialComponent].rect
+
+            # Apply alpha transparency if needed
+            working_img = img_comp.image
+            if img_comp.alpha < 255:
+                working_img = working_img.copy()
+                working_img.set_alpha(img_comp.alpha)
+
+            # Draw it exactly inside the SpacialComponent's rectangle
+            ui_surface.blit(working_img, rect)
 
         if StatPanelComponent in obj and SpacialComponent in obj:
             panel = obj[StatPanelComponent]
@@ -99,7 +118,7 @@ def process(world: dict, window: pygame.Surface):
 
                 y_offset += 25
 
-    if not States.IS_LEVELING_UP:
+    if States.CURRENT_STATE == "PLAYING" and not States.IS_LEVELING_UP:
         minutes, seconds = int(States.BOSS_TIMER // 60), int(States.BOSS_TIMER % 60)
         timer_text = f"BOSS IN: {minutes:02}:{seconds:02}"
         timer_surf = UI_FONT.render(timer_text, True, (255, 50, 50))

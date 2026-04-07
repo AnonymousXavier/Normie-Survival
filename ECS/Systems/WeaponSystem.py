@@ -10,6 +10,7 @@ from ECS.Components import (
 )
 from ECS import Factories
 from Core import States
+from Globals.AudioManager import AudioManager
 
 
 def process(world: dict, spatial_grid: dict, delta: float):
@@ -19,7 +20,6 @@ def process(world: dict, spatial_grid: dict, delta: float):
 
     inventory = player[ArsenalComponent].inventory
 
-    # Find the camera entity once per frame
     camera_ent = States.camera
 
     for obj in list(world.values()):
@@ -45,6 +45,19 @@ def process(world: dict, spatial_grid: dict, delta: float):
                 and obj[WeaponComponent].has_target
             ):
                 obj[CooldownComponent].time_since_last_shot = 0.0
+
+                if (
+                    obj[CooldownComponent].time_since_last_shot
+                    >= obj[CooldownComponent].fire_rate
+                    and obj[WeaponComponent].has_target
+                ):
+                    obj[CooldownComponent].time_since_last_shot = 0.0
+
+                    # --- CHECK THE WEAPON TYPE FOR AUDIO ---
+                    if w_type == "shotgun":
+                        AudioManager.play_sfx("shoot_shotgun")
+                    elif w_type == "sniper":
+                        AudioManager.play_sfx("shoot_sniper")
 
                 # TRIGGER THE SHAKE
                 if camera_ent and CameraShakeComponent in camera_ent:

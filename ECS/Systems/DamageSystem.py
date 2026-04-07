@@ -9,6 +9,7 @@ from ECS.Components import (
     ShieldComponent,
     PlayerStatsComponent,
 )
+from Globals import AudioManager
 from ECS.Systems import CombatSystem
 
 
@@ -62,6 +63,7 @@ def process(world: dict, spatial_grid: dict, dt: float):
                             CombatSystem.take_damage(
                                 world, spatial_grid, States.PLAYER_ID, damage
                             )
+                            AudioManager.play_sfx("hit_hurt")
 
                             # Set inv frames
                             p_health.inv_timer = p_health.inv_duration

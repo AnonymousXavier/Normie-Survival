@@ -51,6 +51,29 @@ def draw_game_entities(
     )
 
     render_surface = pygame.Surface((cbw, cbh))
+
+    # --- 1. PROCEDURAL INFINITE FLOOR ---
+    # Fill the base background with a very deep, moody blue/black
+    render_surface.fill((10, 10, 14))
+
+    tile_size = (
+        Settings.SPRITE.WIDTH * 2
+    )  # Makes the tiles large enough to not strain the eyes
+    grid_color = (25, 25, 35)  # Subtle, low-contrast dark grey/blue lines
+
+    # Modulo arithmetic anchors the grid to the world, but pans it with the camera!
+    offset_x = -(camera_rect.left % tile_size)
+    offset_y = -(camera_rect.top % tile_size)
+
+    # Draw Vertical Lines
+    for x in range(int(offset_x), cbw, tile_size):
+        pygame.draw.line(render_surface, grid_color, (x, 0), (x, cbh), 2)
+
+    # Draw Horizontal Lines
+    for y in range(int(offset_y), cbh, tile_size):
+        pygame.draw.line(render_surface, grid_color, (0, y), (cbw, y), 2)
+    # ------------------------------------
+
     for obj_id in sorted_entities:
         obj = world[obj_id]
         if SpacialComponent in obj and RenderComponent in obj:

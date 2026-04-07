@@ -1,11 +1,14 @@
 import pygame
 from Core import States
 from Globals import Settings
+from Globals.SaveManager import SaveManager
 from ECS.Components import (
     UITag,
     SpacialComponent,
     TextComponent,
     UIButtonComponent,
+    PlayerStatsComponent,
+    ArsenalComponent,
 )
 
 
@@ -18,6 +21,24 @@ class GameOverMenuBuilder:
         w = Settings.WINDOW.DESKTOP_WIDTH
         h = Settings.WINDOW.DESKTOP_HEIGHT
         cx = w // 2
+
+        # Safely grab player stats for the final score
+        player = world.get(States.PLAYER_ID)
+        p_stats = player.get(PlayerStatsComponent) if player else None
+        lvl = p_stats.level if p_stats else 0
+
+        # Grab the weapon used
+        arsenal = player.get(ArsenalComponent) if player else None
+        wep = arsenal.primary_weapon if arsenal else "Unknown"
+
+        # --- THE SAVE HOOK ---
+        SaveManager.save_run(
+            level=lvl,
+            kills=States.KILLS_COUNT,
+            time_survived=States.GAME_TIME,
+            is_victory=False,
+            weapon=wep,
+        )
 
         # TITLE
         title_id = States.NEXT_ENTITY_ID

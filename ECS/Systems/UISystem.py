@@ -10,6 +10,7 @@ from ECS.Components import (
     ArsenalComponent,
     CollectorComponent,
 )
+from ECS.Builders.MainMenuBuilder import MainMenuBuilder
 from ECS import Factories
 from Globals import Upgrades
 from Globals import Settings
@@ -40,19 +41,17 @@ def process_events(world: dict, events: list):
 
             PauseMenuBuilder.destroy(world)
             PauseMenuBuilder.build(world)
+
         elif event.get("type") == "START_GAME":
             chosen_weapon = event.get("weapon")
             print(f"Starting run with: {chosen_weapon}")
 
             # Clear the menu UI
-            from ECS.Builders.MainMenuBuilder import MainMenuBuilder
 
             MainMenuBuilder.destroy(world)
 
             # Set the engine state to playing!
             States.CURRENT_STATE = "PLAYING"
-
-            # Build the Game World (Moved from main.py!)
 
             States.PLAYER_ID = Factories.spawn_player(
                 States.world, States.spatial_grid, 0, 0, chosen_weapon

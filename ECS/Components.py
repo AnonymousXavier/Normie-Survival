@@ -11,6 +11,12 @@ class CameraShakeComponent:
 
 
 @dataclass
+class UIImageComponent:
+    image: pygame.Surface
+    alpha: int = 255  # Just in case you want to fade things in later!
+
+
+@dataclass
 class TrailComponent:
     length: int = 5
     history: list = field(default_factory=list)

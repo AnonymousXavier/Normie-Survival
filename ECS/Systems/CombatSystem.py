@@ -118,8 +118,6 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
         elif PlayerInputTag in target:
             # Remove components that allow interaction/movement
             del target[PlayerInputTag]
-            if ArsenalComponent in target:
-                del target[ArsenalComponent]
             if HitboxComponent in target:
                 del target[HitboxComponent]
 

@@ -10,6 +10,7 @@ from ECS.Components import (
 from ECS.Builders.VictoryMenuBuilder import VictoryMenuBuilder
 from ECS.Builders.LevelUpMenuBuilder import LevelUpMenuBuilder
 from Globals import Misc, Settings, Upgrades
+from Globals.AudioManager import AudioManager
 
 
 def process(world: dict, spatial_grid: dict, dt: float):
@@ -60,23 +61,42 @@ def process(world: dict, spatial_grid: dict, dt: float):
                 if dist_sq < magnet_range_sq:
                     if dist_sq < collection_range_sq:
                         # COLLECT
+
                         p_stats.xp += gem[ExperienceGemComponent].value
+                        AudioManager.play_sfx("gem_pickup")
 
                         # CHECK FOR THE WIN CONDITION
                         if MegaGemTag in world[gem_id]:
                             print("💎 MEGA GEM COLLECTED! TRIGGERING VICTORY!")
                             States.CURRENT_STATE = "VICTORY"
                             VictoryMenuBuilder.build(world)
+                            AudioManager.play_sfx("victory")
 
                         Misc.remove_entity_from_grid(gem_id, cell, spatial_grid)
                         del world[gem_id]
 
-                        if (
-                            States.CURRENT_STATE != "VICTORY"
-                            and States.CURRENT_STATE != "GAME_OVER"
-                        ):
-                            if p_stats.xp >= p_stats.xp_to_next_level:
-                                level_up(p_stats)
+                        # --- NEW MULTI-LEVEL UP & AUDIO LOGIC ---
+                        if States.CURRENT_STATE not in ["VICTORY", "GAME_OVER"]:
+                            leveled_up_this_frame = False
+
+                            while p_stats.xp >= p_stats.xp_to_next_level:
+                                p_stats.xp -= p_stats.xp_to_next_level
+                                p_stats.level += 1
+                                p_stats.xp_to_next_level = int(
+                                    p_stats.xp_to_next_level * 1.25
+                                )
+                                leveled_up_this_frame = True
+
+                            if leveled_up_this_frame:
+                                print(f"✨ LEVEL UP! Reached Level {p_stats.level}")
+                                AudioManager.play_sfx("level_up")
+                                States.IS_LEVELING_UP = True
+
+                                # Grab the options and build the menu!
+                                options = Upgrades.get_random_upgrades(
+                                    p_stats.upgrades_owned
+                                )
+                                LevelUpMenuBuilder.build(options, p_stats.level)
                     else:
                         # MAGNET PULL
                         if pulls_this_frame >= MAX_PULLS_PER_FRAME:

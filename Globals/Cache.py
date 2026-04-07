@@ -49,3 +49,9 @@ class SPRITES:
     class WEAPONS:
         SHOTGUN = SpriteLoader.load_sprite("Assets/Sprites/Weapons/shotgun.png")
         SNIPER = SpriteLoader.load_sprite("Assets/Sprites/Weapons/sniper.png")
+
+    class MENU:
+        COVER_ART = SpriteLoader.load_sprite(
+            "Assets/Sprites/Menu/NinjaAdventure CoverArt.png"
+        )
+        CONTROLS = SpriteLoader.load_sprite("Assets/Sprites/Menu/Controls.png")

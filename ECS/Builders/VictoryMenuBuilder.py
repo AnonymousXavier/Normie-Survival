@@ -1,12 +1,14 @@
 import pygame
 from Core import States
 from Globals import Settings
+from Globals.SaveManager import SaveManager
 from ECS.Components import (
     UITag,
     SpacialComponent,
     TextComponent,
     UIButtonComponent,
     PlayerStatsComponent,
+    ArsenalComponent,
 )
 
 
@@ -24,6 +26,19 @@ class VictoryMenuBuilder:
         player = world.get(States.PLAYER_ID)
         p_stats = player.get(PlayerStatsComponent) if player else None
         lvl = p_stats.level if p_stats else 0
+
+        # Grab the weapon used
+        arsenal = player.get(ArsenalComponent) if player else None
+        wep = arsenal.primary_weapon if arsenal else "Unknown"
+
+        # --- THE SAVE HOOK ---
+        SaveManager.save_run(
+            level=lvl,
+            kills=States.KILLS_COUNT,
+            time_survived=States.GAME_TIME,
+            is_victory=True,
+            weapon=wep,
+        )
 
         # GOLDEN TITLE TEXT
         title_id = States.NEXT_ENTITY_ID

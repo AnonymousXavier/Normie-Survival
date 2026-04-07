@@ -64,6 +64,8 @@ class GAME:
 
 class GAME_OPTIONS:
     SOUND = False
+    MUSIC = False
+    SCREEN_SHAKE = False
 
 
 class COLOURS:

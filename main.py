@@ -3,6 +3,7 @@ import pygame
 from Core import States
 from ECS import Factories
 from Globals import Settings, Misc
+from Globals.AudioManager import AudioManager
 
 from ECS.Components import SpacialComponent, DeathTimerComponent
 from ECS.Builders.GameOverMenuBuilder import GameOverMenuBuilder
@@ -40,6 +41,10 @@ from ECS.Systems import (
 visible_entities = []
 
 dt = 0
+
+pygame.init()
+pygame.mixer.init()
+AudioManager.load_assets()
 
 
 class Main:
