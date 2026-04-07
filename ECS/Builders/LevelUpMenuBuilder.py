@@ -21,7 +21,7 @@ class LevelUpMenuBuilder:
         start_x = (w // 2) - (btn_width // 2)
         start_y = (h // 2) - (total_height // 2)
 
-        # --- 1. SPAWN THE TITLE TEXT ---
+        # SPAWN THE TITLE
         title_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1
 
@@ -40,7 +40,7 @@ class LevelUpMenuBuilder:
             ),
         }
 
-        # --- 2. SPAWN THE BUTTONS ---
+        # SPAWN THE BUTTONS
         for i, option in enumerate(options):
             new_id = States.NEXT_ENTITY_ID
             States.NEXT_ENTITY_ID += 1

@@ -36,19 +36,16 @@ def process(world: dict, spatial_grid: dict):
                                     entities_to_delete,
                                 )
 
-                                # --- THE PIERCE FIX ---
+                                # Piercing for Snipers
                                 proj.pierce -= 1
                                 if proj.pierce <= 0:
                                     entities_to_delete.add(proj_id)
 
                                 break  # Break the inner loop so it only damages 1 enemy per frame
 
-                    # FIX: If the bullet hit something, stop checking the other cells!
+                    # If the bullet hit something, stop checking the other cells
                     if proj_id in entities_to_delete:
                         break
-
-    # Cleanup
-    # (Keep your existing cleanup loop here...)
 
     # Clean up entities
     for ent_id in entities_to_delete:

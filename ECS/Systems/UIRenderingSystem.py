@@ -27,28 +27,28 @@ def process(world: dict, window: pygame.Surface):
         if UITag not in obj:
             continue
 
-        # --- Handle STATS BUTTONS (Two-line) ---
+        # STATS BUTTONS
         if StatsButtonComponent in obj:
             btn = obj[StatsButtonComponent]
             color = btn.hover_color if btn.is_hovered else btn.color
             pygame.draw.rect(ui_surface, color, btn.rect)
             pygame.draw.rect(ui_surface, (100, 200, 255), btn.rect, 2)  # Cyan border
 
-            # Title: Top Half
+            # Title
             t_surf = UI_FONT.render(btn.title, True, (255, 255, 255))
             t_rect = t_surf.get_rect(
                 centerx=btn.rect.centerx, centery=btn.rect.top + 22
             )
             ui_surface.blit(t_surf, t_rect)
 
-            # Description: Bottom Half
+            # Description
             d_surf = DESC_FONT.render(btn.description, True, (200, 200, 200))
             d_rect = d_surf.get_rect(
                 centerx=btn.rect.centerx, centery=btn.rect.bottom - 18
             )
             ui_surface.blit(d_surf, d_rect)
 
-        # --- Handle REGULAR BUTTONS (One-line) ---
+        # REGULAR BUTTONS
         elif UIButtonComponent in obj:
             btn = obj[UIButtonComponent]
             draw_normal_btn(obj, ui_surface)
@@ -68,13 +68,13 @@ def process(world: dict, window: pygame.Surface):
             panel = obj[StatPanelComponent]
             rect = obj[SpacialComponent].rect
 
-            # 1. Background & Border
+            # Background & Border
             pygame.draw.rect(ui_surface, (20, 20, 20, 230), rect, border_radius=10)
             pygame.draw.rect(
                 ui_surface, panel.theme_color, rect, width=2, border_radius=10
             )
 
-            # 2. Title & Divider
+            # Title & Divider
             t_surf = UI_FONT.render(panel.title, True, panel.theme_color)
             ui_surface.blit(t_surf, (rect.x + 15, rect.y + 10))
             pygame.draw.line(
@@ -84,7 +84,7 @@ def process(world: dict, window: pygame.Surface):
                 (rect.right - 10, rect.y + 40),
             )
 
-            # 3. List the Stats!
+            # List the Stats!
             y_offset = 50
             for key, val in panel.stats.items():
                 # Key (Left aligned)
@@ -110,7 +110,7 @@ def process(world: dict, window: pygame.Surface):
         pygame.draw.rect(window, (0, 0, 0, 150), timer_rect.inflate(20, 10))
         window.blit(timer_surf, timer_rect)
 
-    # NOW scale that large surface down to fit the actual window
+    # scale that large surface down to fit the actual window
     win_w, win_h = window.get_size()
     scale = min(win_w / log_w, win_h / log_h)
 

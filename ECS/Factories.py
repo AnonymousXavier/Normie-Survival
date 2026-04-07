@@ -231,16 +231,16 @@ def spawn_boss(world, spatial_grid, mult: float):
 
     # Spawn 10 cells away from player
     player_pos = world[States.PLAYER_ID][SpacialComponent].grid_pos
-    spawn_x = player_pos[0] + 10
+    spawn_x = player_pos[0] + Settings.GAME.BOSS_SPAWN_DISTANCE_FROM_PLAYER
     spawn_y = player_pos[1]
 
     grid_x, grid_y = player_pos[0] + 15, player_pos[1]
 
-    # Calculate the center of the 16x16 tile
+    # Calculate the center of the tile
     tile_center_x = (grid_x * Settings.SPRITE.WIDTH) + (Settings.SPRITE.WIDTH // 2)
     tile_center_y = (grid_y * Settings.SPRITE.HEIGHT) + (Settings.SPRITE.HEIGHT // 2)
 
-    boss_w, boss_h = 50, 50
+    boss_w, boss_h = Cache.SPRITES.ENEMY.BOSS[0][0].get_size()
     # Set the rect so its center matches the tile center
     boss_rect = pygame.Rect(0, 0, boss_w, boss_h)
     boss_rect.center = (tile_center_x, tile_center_y)
@@ -258,7 +258,9 @@ def spawn_boss(world, spatial_grid, mult: float):
         BossTag: BossTag(),
         # Bosses need massive HP to resist your Shotgun build
         HealthComponent: HealthComponent(hp=boss_hp, max_hp=boss_hp),
-        RenderComponent: RenderComponent(color=(255, 0, 0), z_index=2),  # Red Menace
+        RenderComponent: RenderComponent(
+            color=Settings.DEBUG.BOSS_COLOR, z_index=2
+        ),  # index of 2 to ensure hes always render last
         AnimationComponent: AnimationComponent(
             frames={Enums.ANIM_STATES.WALK: Cache.SPRITES.ENEMY.BOSS},
             state=Enums.ANIM_STATES.WALK,
@@ -266,8 +268,8 @@ def spawn_boss(world, spatial_grid, mult: float):
         ),
         FacingDirectionComponent: FacingDirectionComponent(dx=0, dy=0),
         HitboxComponent: HitboxComponent(
-            width=round(50 * Settings.GAME.ENEMY_HITBOX_TO_SPRITE_RATIO),
-            height=round(50 * Settings.GAME.ENEMY_HITBOX_TO_SPRITE_RATIO),
+            width=round(boss_w * Settings.GAME.ENEMY_HITBOX_TO_SPRITE_RATIO),
+            height=round(boss_h * Settings.GAME.ENEMY_HITBOX_TO_SPRITE_RATIO),
         ),
         DamageComponent: DamageComponent(amount=int(1 * mult)),
         BossAIComponent: BossAIComponent(),
@@ -298,8 +300,7 @@ def spawn_gem(
     gem = {
         SpacialComponent: SpacialComponent(
             grid_pos=(grid_x, grid_y),
-            # Use round() here to ensure the Rect is valid for Pygame
-            rect=pygame.Rect((round(x + w // 2), round(y + 4)), (w, h)),
+            rect=pygame.Rect((round(x + w // 2), round(y + h // 2)), (w, h)),
         ),
         RenderComponent: RenderComponent(
             color=(0, 0, 0), sprite=Cache.SPRITES.ITEMS.GEM, z_index=-1
@@ -309,7 +310,6 @@ def spawn_gem(
     }
 
     world[new_id] = gem
-    # Always register using the integer grid_pos
     Misc.register_entity_in_grid(new_id, (grid_x, grid_y), spatial_grid)
 
     return new_id
@@ -336,7 +336,6 @@ def spawn_shotgun(
             sprite=Cache.SPRITES.WEAPONS.SHOTGUN,
             base_sprite=Cache.SPRITES.WEAPONS.SHOTGUN,
         ),
-        # Pass the new dynamic variables here!
         OrbitalComponent: OrbitalComponent(
             target_id=target_id,
             radius=1.0,
@@ -374,7 +373,7 @@ def spawn_sniper(
             rect=pygame.Rect((0, 0), (Cache.SPRITES.WEAPONS.SNIPER.get_size())),
         ),
         RenderComponent: RenderComponent(
-            color=(255, 0, 0),
+            color=Settings.DEBUG.WEAPON_COLOR,
             sprite=Cache.SPRITES.WEAPONS.SNIPER,
             base_sprite=Cache.SPRITES.WEAPONS.SNIPER,
         ),
@@ -397,7 +396,7 @@ def spawn_sniper(
 
 
 def refresh_weapon(world, spatial_grid, player_id, weapon_type, count):
-    # 1. Delete all physical entities of THIS specific weapon type
+    # Delete all physical entities of THIS specific weapon type
     to_delete = [
         eid
         for eid, e in world.items()
@@ -411,13 +410,13 @@ def refresh_weapon(world, spatial_grid, player_id, weapon_type, count):
         )
         del world[eid]
 
-    # 2. Respawn with stagger
+    # Respawn the guns with a
     player = world[player_id]
     w_stats = player[ArsenalComponent].inventory[weapon_type]
     stagger_interval = w_stats.base_fire_rate / count
 
-    # --- YOUR FIX: THE TIGHT FAN SPREAD ---
-    tight_spacing_deg = 20.0  # Adjust this to change how close the guns stack!
+    # THE TIGHT FAN SPREAD
+    tight_spacing_deg = 20.0  # Determines how closely they stack
 
     for i in range(count):
         start_offset = i * stagger_interval
@@ -476,7 +475,7 @@ def spawn_bullet(
         SpacialComponent: SpacialComponent(
             grid_pos=(grid_x, grid_y), rect=pygame.Rect(spawn_x, spawn_y, 4, 4)
         ),
-        RenderComponent: RenderComponent(color=(255, 255, 0)),
+        RenderComponent: RenderComponent(color=Settings.DEBUG.BULLET_COLOR),
         ProjectileComponent: ProjectileComponent(
             dx=dx,
             dy=dy,

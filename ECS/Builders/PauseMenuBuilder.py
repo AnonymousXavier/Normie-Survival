@@ -10,9 +10,8 @@ from ECS.Components import (
     ArsenalComponent,
     ShieldComponent,
     CollectorComponent,
-    AOEComponent,  # <-- Added AOE
+    AOEComponent,
     UIButtonComponent,
-    TextComponent,
 )
 
 
@@ -25,28 +24,26 @@ class PauseMenuBuilder:
         if not player:
             return
 
-        # --- 1. GATHER DATA ---
+        # GATHER DATA
         p_stats = player.get(PlayerStatsComponent)
         arsenal = player.get(ArsenalComponent)
         shield = player.get(ShieldComponent)
         collector = player.get(CollectorComponent)
         aoe = player.get(AOEComponent)
 
-        # --- POPULATE VITALS ---
+        # POPULATE VITALS
         vitals = {}
         if p_stats:
             vitals["Level"] = str(p_stats.level)
             vitals["XP"] = f"{p_stats.xp} / {p_stats.xp_to_next_level}"
 
-            # --- THE FORMATTING FIX ---
-            # Added :.1f to restrict the current_hp to 1 decimal place
             vitals["HP"] = f"{p_stats.current_hp:.1f} / {p_stats.final_max_hp}"
 
             if p_stats.regen_per_second > 0:
                 vitals["Regen"] = f"+{p_stats.regen_per_second:.1f}/s"
             vitals["Speed"] = f"{p_stats.final_speed:.0f}"
 
-        # --- POPULATE ARSENAL ---
+        # POPULATE ARSENAL
         guns = {}
         wep_lvl = 0
         if arsenal and arsenal.primary_weapon in arsenal.inventory:
@@ -59,7 +56,7 @@ class PauseMenuBuilder:
             guns["Damage"] = str(w_stats.get_final_damage(d_mult))
             guns["Fire Rate"] = f"{w_stats.get_final_fire_rate(fr_mult):.2f}s"
 
-            # --- THE FIX: USE THE NEW UPGRADE KEY ---
+            # USE THE NEW UPGRADE KEY
             wep_lvl = p_stats.upgrades_owned.get("primary_weapon", 0) if p_stats else 0
 
             # Calculate physical gun count dynamically based on the active weapon
@@ -73,7 +70,7 @@ class PauseMenuBuilder:
             guns["Proj. Speed"] = f"{w_stats.speed:.0f}"
             guns["Spread"] = f"{w_stats.spread_angle:.0f}°"
 
-        # --- POPULATE UTILITY ---
+        # POPULATE UTILITY
         utility = {}
         if aoe:
             utility["AOE Damage"] = str(aoe.damage)
@@ -90,7 +87,7 @@ class PauseMenuBuilder:
         if not utility:
             utility["Status"] = "No Utilities Unlocked"
 
-        # --- 2. BUILD UI PANELS ---
+        # BUILD UI PANELS
         w = Settings.WINDOW.DESKTOP_WIDTH
         h = Settings.WINDOW.DESKTOP_HEIGHT
 
@@ -117,7 +114,6 @@ class PauseMenuBuilder:
             eid = States.NEXT_ENTITY_ID
             States.NEXT_ENTITY_ID += 1
 
-            # USE left_start_x HERE!
             rect = pygame.Rect(left_start_x, start_y + y_offset, panel_w, panel_h)
 
             world[eid] = {
@@ -131,11 +127,10 @@ class PauseMenuBuilder:
 
         # Spawn the 3 Stats blocks on the LEFT
         spawn_panel("VITALS", vitals, (50, 255, 100), 0)
-        # wep_lvl was already calculated in the POPULATE ARSENAL block above!
         spawn_panel(f"ARSENAL (LVL {wep_lvl})", guns, (255, 150, 50), panel_h + padding)
         spawn_panel("UTILITY", utility, (50, 150, 255), (panel_h + padding) * 2)
 
-        # --- 3. BUILD OPTIONS PANEL (Right Side) ---
+        # BUILD OPTIONS PANEL (Right Side)
         opt_bg_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1
 
@@ -153,7 +148,7 @@ class PauseMenuBuilder:
         }
         PauseMenuBuilder._ui_ids.append(opt_bg_id)
 
-        # --- 4. SPAWN TOGGLE BUTTON ---
+        # SPAWN TOGGLE BUTTON
         btn_y = start_y + 80
         btn_w = 200
         btn_h = 50

@@ -2,8 +2,12 @@ import pygame
 
 from Core import States
 from ECS import Factories
+from Globals import Settings, Misc
+
 from ECS.Components import SpacialComponent, DeathTimerComponent
 from ECS.Builders.GameOverMenuBuilder import GameOverMenuBuilder
+from ECS.Builders.MainMenuBuilder import MainMenuBuilder
+
 from ECS.Systems import (
     AINavigationSystem,
     AOESystem,
@@ -32,7 +36,6 @@ from ECS.Systems import (
     AnimationSystem,
     BossAISystem,
 )
-from Globals import Settings, Misc
 
 visible_entities = []
 
@@ -41,15 +44,12 @@ dt = 0
 
 class Main:
     def __init__(self) -> None:
-        # Just boot the Menu Builder! The UISystem handles the rest later.
-        from ECS.Builders.MainMenuBuilder import MainMenuBuilder
-
         MainMenuBuilder.build(States.world)
 
     def draw(self):
         Settings.window.fill(Settings.COLOURS.BLACK)
 
-        # Guardrail: Only render the actual game world if we are playing
+        # Only render the actual game world if we are playing
         if States.CURRENT_STATE == "PLAYING":
             RenderingSystem.process(
                 surface=Settings.window,
@@ -59,12 +59,13 @@ class Main:
                 dt=dt,
             )
 
-        # The UI always renders (so we can see the menu!)
+        # The UI always renders tho
         UIRenderingSystem.process(States.world, Settings.window)
 
     def handle_debug(self):
         if States.CURRENT_STATE != "PLAYING":
             return
+
         debug = {}
         debug_spatial_grid = {}
         DebugSystem.process(debug, debug_spatial_grid)
@@ -85,17 +86,17 @@ class Main:
 
         InputSystem.process(States.world, events, dt)
 
-        # --- MENU STATE GUARDRAIL ---
+        # --- MENU STATE  ---
         if States.CURRENT_STATE == "MENU":
             UISystem.process_events(States.world, events)
             UIHoverSystem.process(States.world)
-            return  # <-- CRITICAL: Stops the rest of the engine from running!
+            return  # Stops the rest of the engine from running!
 
-        # --- VICTORY STATE GUARDRAIL ---
+        # --- VICTORY STATE  ---
         if States.CURRENT_STATE == "VICTORY":
             UISystem.process_events(States.world, events)
             UIHoverSystem.process(States.world)
-            return  # Stops the swarm from moving while you look at your score!
+            return  # Stops the swarm from moving while you look at your score
 
         # --- PLAYING STATE ---
         if not States.IS_LEVELING_UP and not States.IS_PAUSED:
@@ -131,7 +132,7 @@ class Main:
                 States.world[States.PLAYER_ID][SpacialComponent].grid_pos
             )
 
-            # --- THE TOMBSTONE COUNTDOWN ---
+            # --- DEATH COUNTDOWN ---
             player = States.world.get(States.PLAYER_ID)
             if player and DeathTimerComponent in player:
                 player[DeathTimerComponent].time_left -= dt

@@ -14,7 +14,7 @@ class MainMenuBuilder:
         h = Settings.WINDOW.DESKTOP_HEIGHT
         cx = w // 2
 
-        # 1. TITLE TEXT
+        # TITLE TEXT
         title_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1
         world[title_id] = {
@@ -28,7 +28,7 @@ class MainMenuBuilder:
         }
         MainMenuBuilder._ui_ids.append(title_id)
 
-        # 2. SHOTGUN BUTTON
+        # SHOTGUN BUTTON
         btn_w, btn_h = 300, 60
         sg_btn_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1
@@ -43,7 +43,7 @@ class MainMenuBuilder:
         }
         MainMenuBuilder._ui_ids.append(sg_btn_id)
 
-        # 3. SNIPER BUTTON
+        # SNIPER BUTTON
         sn_btn_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1
         world[sn_btn_id] = {

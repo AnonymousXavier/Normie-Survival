@@ -82,9 +82,10 @@ class ProjectileComponent:
     dy: float
     speed: float
     damage: int
+    pierce: int = 1
+    # Rects convert floats to int
     exact_x: float = 0.0
     exact_y: float = 0.0
-    pierce: int = 1
 
 
 @dataclass(kw_only=True)
@@ -95,7 +96,7 @@ class CooldownComponent:
 
 @dataclass(kw_only=True, slots=True)
 class FacingDirectionComponent:
-    dx: float = 1.0  # Default facing right
+    dx: float = 1.0  # By default, faces right
     dy: float = 0.0
 
 
@@ -113,7 +114,7 @@ class OrbitalComponent:
     radius: float
     angle: float
     spin_speed: float
-    offset_angle: float = 0.0  # <-- ADD THIS
+    offset_angle: float = 0.0
 
 
 @dataclass(kw_only=True, slots=True)
@@ -212,13 +213,13 @@ class WeaponStats:
 @dataclass
 class ArsenalComponent:
     inventory: dict
-    primary_weapon: str = "shotgun"  # Defaults to shotgun for now
+    primary_weapon: str = ""
 
 
 @dataclass(kw_only=True, slots=True)
 class StatPanelComponent:
     title: str
-    stats: dict = field(default_factory=dict)  # A dictionary of Key-Value strings
+    stats: dict = field(default_factory=dict)
     theme_color: tuple = (255, 255, 255)
 
 
@@ -240,7 +241,7 @@ class PlayerStatsComponent:
     base_max_hp: int = Settings.GAME.DEFAULT_PLAYER_HP
     current_hp: int = Settings.GAME.DEFAULT_PLAYER_HP
 
-    # Multipliers - These increase via upgrades
+    # Multipliers
     speed_mult: float = 1.0
     hp_mult: float = 1.0
     damage_mult: float = 1.0

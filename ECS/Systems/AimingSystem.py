@@ -1,6 +1,6 @@
 import math
 import pygame
-from Core import States  # <-- ADD THIS TO IMPORTS
+from Core import States
 from ECS.Components import (
     SpacialComponent,
     RenderComponent,
@@ -15,7 +15,6 @@ from Globals import Misc
 
 
 def process(world: dict, spatial_grid: dict, camera: dict):
-    # --- 1. THE ANCHOR FIX ---
     player = world.get(States.PLAYER_ID)
     if not player or SpacialComponent not in player:
         return
@@ -32,7 +31,7 @@ def process(world: dict, spatial_grid: dict, camera: dict):
             target_enemy_id = None
             closest_dist_sq = float("inf")
 
-            # Find closest enemy using the PLAYER'S position (px, py), not the gun's!
+            # Find closest enemy using the player's position
             for v_id in visible_ids:
                 if EnemyTag in world[v_id] and SpacialComponent in world[v_id]:
                     ex = world[v_id][SpacialComponent].rect.centerx
@@ -55,21 +54,22 @@ def process(world: dict, spatial_grid: dict, camera: dict):
                 aim_dx = ex - px
                 aim_dy = ey - py
 
-                # 1. Get the actual target angle
+                # Get the actual target angle
                 target_angle_deg = math.degrees(math.atan2(-aim_dy, aim_dx))
                 current_angle = obj[RotationComponent].angle
 
-                # 2. SMOOTH INTERPOLATION
+                # SMOOTH INTERPOLATION
+                interpolation_speed = 0.15
                 diff = (target_angle_deg - current_angle + 180) % 360 - 180
-                smoothed_angle = current_angle + (diff * 0.15)
+                smoothed_angle = current_angle + (diff * interpolation_speed)
 
-                # 3. DIRECTIONAL ORBITING
+                # DIRECTIONAL ORBITING
                 if OrbitalComponent in obj:
                     obj[OrbitalComponent].angle = (
                         -smoothed_angle + obj[OrbitalComponent].offset_angle
                     )
 
-                # 4. RENDERING
+                # RENDERING
                 if abs(diff) > 0.5:
                     obj[RotationComponent].angle = smoothed_angle
                     base_sprite = obj[RenderComponent].base_sprite

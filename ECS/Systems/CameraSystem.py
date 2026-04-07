@@ -14,7 +14,7 @@ def process(world: dict, camera: dict, delta: float):
     base_x = targets_rect.centerx
     base_y = targets_rect.centery
 
-    # --- ACTION JUICE: CAMERA SHAKE ---
+    # CAMERA SHAKE
     if CameraShakeComponent in camera:
         shake = camera[CameraShakeComponent]
         if shake.intensity > 0:
@@ -25,7 +25,7 @@ def process(world: dict, camera: dict, delta: float):
             base_x += offset_x
             base_y += offset_y
 
-            # Snappy decay: Lose 150 intensity per second
+            # Lose 150 intensity per second
             shake.intensity -= 150.0 * delta
             if shake.intensity < 0:
                 shake.intensity = 0.0

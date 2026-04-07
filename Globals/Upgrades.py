@@ -39,7 +39,6 @@ def get_random_upgrades(owned_upgrades: dict) -> list:
 
     chosen_keys = random.sample(valid_keys, min(3, len(valid_keys)))
 
-    # --- THIS IS THE FIX ---
     # Format the dictionaries with 'title' and 'reward' for the LevelUpMenuBuilder
     formatted_options = []
     for key in chosen_keys:

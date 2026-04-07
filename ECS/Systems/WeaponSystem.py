@@ -6,14 +6,10 @@ from ECS.Components import (
     CooldownComponent,
     ArsenalComponent,
     WeaponComponent,
+    CameraShakeComponent,
 )
 from ECS import Factories
-from Core import States  # Import States to access the global stats
-
-
-from ECS.Components import (
-    CameraShakeComponent,  # <-- Need this to trigger the shake
-)
+from Core import States
 
 
 def process(world: dict, spatial_grid: dict, delta: float):
@@ -23,7 +19,7 @@ def process(world: dict, spatial_grid: dict, delta: float):
 
     inventory = player[ArsenalComponent].inventory
 
-    # 1. Find the camera entity once per frame
+    # Find the camera entity once per frame
     camera_ent = States.camera
 
     for obj in list(world.values()):
@@ -50,19 +46,17 @@ def process(world: dict, spatial_grid: dict, delta: float):
             ):
                 obj[CooldownComponent].time_since_last_shot = 0.0
 
-                # --- 2. TRIGGER THE SHAKE ---
+                # TRIGGER THE SHAKE
                 if camera_ent and CameraShakeComponent in camera_ent:
                     shake = camera_ent[CameraShakeComponent]
-                    # Add punch, but cap it at 25 so it doesn't break when 5 guns fire at once
+                    # Add punch
                     shake.intensity = min(shake.intensity + 1.0, 5.0)
 
                 cx = obj[SpacialComponent].rect.centerx
                 cy = obj[SpacialComponent].rect.centery
                 base_angle = obj[RotationComponent].angle
 
-                # ... (Keep your existing SPREAD MATH exactly the same) ...
-
-                # --- SPREAD MATH ---
+                # SPREAD MATH
                 count = w_stats.projectile_count
                 spread = w_stats.spread_angle
 

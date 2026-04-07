@@ -13,17 +13,15 @@ def process(world: dict, global_events: list, dt: float):
 
     player = world[States.PLAYER_ID]
 
-    # --- THE CIRCUIT BREAKER ---
     if StunComponent in player:
         player[StunComponent].timer -= dt
         if player[StunComponent].timer <= 0:
-            del player[StunComponent]  # Stun wears off!
+            del player[StunComponent]  # Stun wears off
             print("⚡ CONTROL RESTORED!")
         else:
-            # You are paralyzed. No movement input is processed.
-            return
+            return  # paralyzed. No movement input is processed.
 
-    # --- 1. MOUSE TRANSLATION ---
+    # MOUSE TRANSLATION
     raw_mx, raw_my = pygame.mouse.get_pos()
     win_w, win_h = pygame.display.get_surface().get_size()
     screen_w, screen_h = Settings.WINDOW.DESKTOP_WIDTH, Settings.WINDOW.DESKTOP_HEIGHT
@@ -37,15 +35,13 @@ def process(world: dict, global_events: list, dt: float):
     offset_x = (win_w - scaled_w) // 2
     offset_y = (win_h - scaled_h) // 2
 
-    # Reverse the math to get the exact logical pixel the mouse is pointing at!
+    # Reverse the math to get the exact screen pixel the mouse is pointing at
     logical_mx = int((raw_mx - offset_x) / scale)
     logical_my = int((raw_my - offset_y) / scale)
 
-    # Save it globally so UIHoverSystem can check it continuously without needing an event
     States.SCREEN_MOUSE_POS = (logical_mx, logical_my)
 
-    # --- 2. EVENT BROADCASTING ---
-
+    # EVENT BROADCASTING
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             States.GAME_RUNNING = False
@@ -89,8 +85,7 @@ def process(world: dict, global_events: list, dt: float):
     if States.IS_PAUSED or States.IS_LEVELING_UP:
         return
 
-        # Handle Player Movements
-
+    # Handle Player Movements
     pressed_keys = pygame.key.get_pressed()
     player_id = States.PLAYER_ID
 

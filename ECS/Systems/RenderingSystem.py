@@ -15,7 +15,6 @@ import math
 
 from Globals import Misc
 from Globals import Settings
-from Globals.Settings import SPRITE
 
 DEBUG_FONT = pygame.font.SysFont("Arial", 12)
 
@@ -62,19 +61,13 @@ def draw_game_entities(
             )
             render_rect = pygame.Rect(render_pos, obj_rect.size)
 
-            # 3. AOE VISUAL (Underlay)
             # If this is the AOE entity itself (Orbital), give it a pulse
-            # ECS/Systems/RenderingSystem.py (Inside your AOE block)
-
             if AOEComponent in obj:
                 aoe = obj[AOEComponent]
 
-                # t goes from 0.0 to 1.0 as the cooldown charges
                 t = aoe.timer / aoe.cooldown
 
-                # --- 1. THE MATH: Cubic Easing ---
-                # Cubing the inverted fraction makes it drop incredibly fast.
-                # Try changing ** 3 to ** 5 for an even faster snap!
+                # Cubic Easing
                 factor = (t) ** 3
 
                 # The absolute maximum size of the zone
@@ -83,15 +76,14 @@ def draw_game_entities(
                 # The actual shrinking radius
                 current_radius = int(max_radius_px * factor)
 
-                # --- 2. PERFORMANCE: Static Surface Size ---
-                # Always make the surface the max size so the CPU doesn't panic
+                # Static Surface Size
                 aoe_surf = pygame.Surface(
                     (max_radius_px * 2, max_radius_px * 2), pygame.SRCALPHA
                 )
                 center_pt = (max_radius_px, max_radius_px)
 
-                # --- 3. THE VISUALS ---
-                # A. The "Threat Zone" Ghost Ring (Always visible, very faint)
+                # THE VISUALS
+                # Ghost Ring
                 pygame.draw.circle(
                     aoe_surf, (255, 0, 0, 15), center_pt, max_radius_px, 1
                 )
@@ -100,16 +92,16 @@ def draw_game_entities(
                     # Fade out the alpha as it shrinks
                     alpha = int(factor * 150)
 
-                    # B. The Shrinking Core
+                    # The Shrinking Core
                     pygame.draw.circle(
                         aoe_surf, (255, 50, 50, alpha), center_pt, current_radius
                     )
 
-                    # C. The "Energy Rim" (A brighter, thicker ring on the edge of the shrinking core)
+                    # The "Energy Rim" (A brighter, thicker ring on the edge of the shrinking core)
                     rim_thickness = max(1, current_radius // 4)
                     pygame.draw.circle(
                         aoe_surf,
-                        (255, 150, 150, alpha + 50),
+                        (255, 150, 150, max(0, min(alpha + 50, 255))),
                         center_pt,
                         current_radius,
                         rim_thickness,
@@ -120,7 +112,7 @@ def draw_game_entities(
                     aoe_surf, aoe_surf.get_rect(center=render_rect.center)
                 )
 
-            # 1. DRAW ENTITY SPRITE/RECT
+            # DRAW ENTITY SPRITE/RECT
             if obj[RenderComponent].sprite:
                 render_surface.blit(obj[RenderComponent].sprite, render_rect)
             else:
@@ -128,12 +120,14 @@ def draw_game_entities(
                     render_surface, obj[RenderComponent].color, render_rect
                 )
 
-            # 2. SHIELD VISUAL (Overlay)
+            # SHIELD VISUAL
             if ShieldComponent in obj:
                 s = obj[ShieldComponent]
                 if s.active:
                     # Create a transparent surface for the 'bubble'
-                    s_size = obj[SpacialComponent].rect.width + 12
+                    s_size = (
+                        obj[SpacialComponent].rect.width + Settings.GAME.SHIELD_RADIUS
+                    )
                     shield_surf = pygame.Surface((s_size, s_size), pygame.SRCALPHA)
 
                     # Pulsing Alpha based on time
@@ -148,15 +142,14 @@ def draw_game_entities(
                         shield_surf,
                         (0, 150, 255, 40),
                         (s_size // 2, s_size // 2),
-                        s_size // 2 - 2,
+                        s_size // 2 - 1,
                     )
 
                     render_surface.blit(
                         shield_surf, shield_surf.get_rect(center=render_rect.center)
                     )
 
-            # 2. DRAW HEALTH BAR (New)
-            # We check both HealthComponent (Enemies) and PlayerStatsComponent (Xavier)
+            # DRAW HEALTH BAR
             hp_data = None
             if PlayerStatsComponent in obj:
                 hp_data = (
@@ -174,7 +167,7 @@ def draw_game_entities(
                 bar_h = Settings.SPRITE.HEIGHT // 6
                 bx, by = render_pos[0], render_pos[1] - bar_h
 
-                # --- 1. HEALTH BAR ---
+                # HEALTH BAR
                 pygame.draw.rect(
                     render_surface, (80, 0, 0), (bx, by, bar_w, bar_h)
                 )  # Background
@@ -182,39 +175,38 @@ def draw_game_entities(
                     render_surface, (0, 200, 0), (bx, by, bar_w * hp_perc, bar_h)
                 )  # Foreground
 
-                # --- 2. XP BAR (Player Only) ---
+                # XP BAR
                 if PlayerStatsComponent in obj:
                     stats = obj[PlayerStatsComponent]
                     xp_perc = max(0, min(1, stats.xp / stats.xp_to_next_level))
 
-                    # Position it 6 pixels above the Health Bar
+                    # Position it above the Health Bar
                     xp_by = by - bar_h
 
-                    # Background (Dark Blue)
+                    # Background
                     pygame.draw.rect(
                         render_surface, (20, 20, 0), (bx, xp_by, bar_w, bar_h)
                     )
-                    # Foreground (Bright Cyan/XP Color)
+                    # Foreground
                     pygame.draw.rect(
                         render_surface,
                         (255, 200, 0),
                         (bx, xp_by, bar_w * xp_perc, bar_h),
                     )
-            # --- XP GEM TRAILS ---
+            # XP GEM TRAILS
             if TrailComponent in obj and ExperienceGemComponent in obj:
                 trail = obj[TrailComponent]
-                # 1. Record the current center position
+                # Record the current center position
                 center_pos = obj[SpacialComponent].rect.center
                 trail.history.append(center_pos)
 
-                # 2. Keep the history at the max length
+                # Keep the history at the max length
                 if len(trail.history) > trail.length:
                     trail.history.pop(0)
 
-                # 3. Draw the "Dart" Trail (Only if it's currently moving fast/vacuuming)
-                # We check if history[0] is different from the current pos to ensure it's moving
+                # Draw the Trail (Only if it's currently being vacummed)
                 if len(trail.history) > 1 and trail.history[0] != center_pos:
-                    # Draw from oldest (tail) to newest (head), getting thicker
+                    # Draw from oldest to newest
                     for i in range(len(trail.history) - 1):
                         start_pt = trail.history[i]
                         end_pt = trail.history[i + 1]
@@ -229,7 +221,7 @@ def draw_game_entities(
                         # Tail is 1px, gets thicker as it approaches the gem
                         thickness = max(1, i)
 
-                        # Draw a nice bright cyan/blue line for XP
+                        # Draw a nice bright line for XP
                         pygame.draw.line(
                             render_surface, (0, 255, 255), cam_start, cam_end, thickness
                         )
@@ -241,17 +233,13 @@ def draw_game_entities(
                 render_surface.blit(hit_sprite, render_rect)
                 # Decrease timer
                 obj[HealthComponent].hit_timer -= dt
-            else:
-                # Draw normal sprite
-                # render_surface.blit(obj[RenderComponent].sprite, render_rect)
-                pass
 
     return render_surface
 
 
 def get_hit_surface(sprite):
-    # 1. Create a mask from the sprite (handles transparency perfectly)
+    # Create a mask from the sprite
     mask = pygame.mask.from_surface(sprite)
-    # 2. Convert that mask into a surface
+    # Convert that mask into a surface
     hit_surf = mask.to_surface(setcolor=(255, 255, 255, 255), unsetcolor=(0, 0, 0, 0))
     return hit_surf

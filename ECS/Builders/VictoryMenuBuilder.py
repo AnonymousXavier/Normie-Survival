@@ -1,7 +1,14 @@
 import pygame
 from Core import States
 from Globals import Settings
-from ECS.Components import UITag, SpacialComponent, TextComponent, UIButtonComponent, PlayerStatsComponent
+from ECS.Components import (
+    UITag,
+    SpacialComponent,
+    TextComponent,
+    UIButtonComponent,
+    PlayerStatsComponent,
+)
+
 
 class VictoryMenuBuilder:
     _ui_ids = []
@@ -18,27 +25,37 @@ class VictoryMenuBuilder:
         p_stats = player.get(PlayerStatsComponent) if player else None
         lvl = p_stats.level if p_stats else 0
 
-        # 1. GOLDEN TITLE TEXT
+        # GOLDEN TITLE TEXT
         title_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1
         world[title_id] = {
             UITag: UITag(),
-            SpacialComponent: SpacialComponent(rect=pygame.Rect(cx - 250, h * 0.2, 500, 100)),
-            TextComponent: TextComponent(text="VICTORY ACHIEVED", color=(255, 215, 0), is_header=True),
+            SpacialComponent: SpacialComponent(
+                rect=pygame.Rect(cx - 250, h * 0.2, 500, 100)
+            ),
+            TextComponent: TextComponent(
+                text="VICTORY ACHIEVED", color=Settings.COLOURS.GOLD, is_header=True
+            ),
         }
         VictoryMenuBuilder._ui_ids.append(title_id)
 
-        # 2. FINAL STATS TEXT
+        # FINAL STATS TEXT
         stats_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1
         world[stats_id] = {
             UITag: UITag(),
-            SpacialComponent: SpacialComponent(rect=pygame.Rect(cx - 200, h * 0.4, 400, 50)),
-            TextComponent: TextComponent(text=f"Level Reached: {lvl}   |   Total Kills: {States.KILLS_COUNT}", color=(255, 255, 255), is_header=False),
+            SpacialComponent: SpacialComponent(
+                rect=pygame.Rect(cx - 200, h * 0.4, 400, 50)
+            ),
+            TextComponent: TextComponent(
+                text=f"Level Reached: {lvl}   |   Total Kills: {States.KILLS_COUNT}",
+                color=(255, 255, 255),
+                is_header=False,
+            ),
         }
         VictoryMenuBuilder._ui_ids.append(stats_id)
 
-        # 3. QUIT BUTTON
+        # QUIT BUTTON
         btn_w, btn_h = 300, 60
         quit_btn_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1

@@ -18,10 +18,6 @@ from ECS.Components import (
     MegaGemTag,
 )
 from ECS import Factories
-from ECS.Builders.VictoryMenuBuilder import VictoryMenuBuilder
-
-
-# ECS/Systems/CombatSystem.py
 
 
 def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None):
@@ -29,14 +25,13 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
     if not target:
         return
 
-    # --- 0. PREVENT OVERKILL (Moved to the top) ---
-    # If the target is already dead/dying, ignore this extra projectile/hit
+    # If the target is already dead, ignore this extra attack
     if HealthComponent in target and target[HealthComponent].hp <= 0:
         return
     if PlayerStatsComponent in target and target[PlayerStatsComponent].current_hp <= 0:
         return
 
-    # --- 1. SHIELD LOGIC ---
+    # SHIELD LOGIC
     if ShieldComponent in target:
         shield = target[ShieldComponent]
         if shield.active:
@@ -46,7 +41,7 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
                 shield.timer = 0
             return  # Damage fully absorbed
 
-    # --- 2. APPLY DAMAGE ---
+    # APPLY DAMAGE
     is_dead = False
     if PlayerStatsComponent in target:
         stats = target[PlayerStatsComponent]
@@ -58,7 +53,7 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
         is_dead = health.hp <= 0
 
     target[HealthComponent].hit_timer = 0.1
-    # --- 3. DEATH LOGIC ---
+    # DEATH
     if is_dead:
         if BossTag in target:
             print("🏆 BOSS DEFEATED: CLEARING THE HORDE!")
@@ -121,7 +116,6 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
                 entities_to_delete.add(target_id)
 
         elif PlayerInputTag in target:
-            # --- TOMBSTONING PROTOCOL ---
             # Remove components that allow interaction/movement
             del target[PlayerInputTag]
             if ArsenalComponent in target:

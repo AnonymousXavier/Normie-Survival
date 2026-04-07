@@ -7,6 +7,7 @@ from ECS.Components import (
     PlayerStatsComponent,
     MegaGemTag,
 )
+from ECS.Builders.VictoryMenuBuilder import VictoryMenuBuilder
 from ECS.Builders.LevelUpMenuBuilder import LevelUpMenuBuilder
 from Globals import Misc, Settings, Upgrades
 
@@ -23,7 +24,7 @@ def process(world: dict, spatial_grid: dict, dt: float):
     p_stats = player[PlayerStatsComponent]
     p_range_grid = player[CollectorComponent].range
 
-    # 1. OPTIMIZATION: Pre-calculate Squared Distances
+    # Pre-calculate Squared Distances
     magnet_range_sq = (p_range_grid * Settings.SPRITE.WIDTH) ** 2
     collection_range_sq = 15**2  # 15 pixels squared
     pull_speed = 250
@@ -31,7 +32,7 @@ def process(world: dict, spatial_grid: dict, dt: float):
     grid_r = int(p_range_grid) + 1
     p_grid_x, p_grid_y = player[SpacialComponent].grid_pos
 
-    # 2. OPTIMIZATION: The Vacuum Cap
+    # The Vacuum Cap
     MAX_PULLS_PER_FRAME = 30
     pulls_this_frame = 0
 
@@ -41,7 +42,7 @@ def process(world: dict, spatial_grid: dict, dt: float):
             if cell not in spatial_grid:
                 continue
 
-            # Iterate over a COPY of the list since we might delete gems
+            # Iterate over a COPY of the list since we also delete gems
             for gem_id in list(spatial_grid[cell]):
                 gem = world.get(gem_id)
                 if not gem or ExperienceGemComponent not in gem:
@@ -53,22 +54,18 @@ def process(world: dict, spatial_grid: dict, dt: float):
                 dist_x = p_pos[0] - g_center[0]
                 dist_y = p_pos[1] - g_center[1]
 
-                # Compare Squared Distances! (No math.sqrt)
+                # Compare Squared Distances (No math.sqrt)
                 dist_sq = dist_x**2 + dist_y**2
 
                 if dist_sq < magnet_range_sq:
                     if dist_sq < collection_range_sq:
-                        # --- PHASE 2: COLLECT ---
+                        # COLLECT
                         p_stats.xp += gem[ExperienceGemComponent].value
 
                         # CHECK FOR THE WIN CONDITION
                         if MegaGemTag in world[gem_id]:
                             print("💎 MEGA GEM COLLECTED! TRIGGERING VICTORY!")
                             States.CURRENT_STATE = "VICTORY"
-                            from ECS.Builders.VictoryMenuBuilder import (
-                                VictoryMenuBuilder,
-                            )
-
                             VictoryMenuBuilder.build(world)
 
                         Misc.remove_entity_from_grid(gem_id, cell, spatial_grid)
@@ -81,14 +78,11 @@ def process(world: dict, spatial_grid: dict, dt: float):
                             if p_stats.xp >= p_stats.xp_to_next_level:
                                 level_up(p_stats)
                     else:
-                        # --- PHASE 1: MAGNET PULL ---
+                        # MAGNET PULL
                         if pulls_this_frame >= MAX_PULLS_PER_FRAME:
-                            continue  # Stop pulling if we hit the CPU limit
+                            continue
 
                         pulls_this_frame += 1
-
-                        # We still need one sqrt here to normalize the vector for movement,
-                        # but we ONLY do it for gems that are actually moving.
                         distance = dist_sq**0.5
 
                         move_x = (dist_x / distance) * pull_speed * dt

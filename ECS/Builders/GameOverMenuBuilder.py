@@ -6,7 +6,6 @@ from ECS.Components import (
     SpacialComponent,
     TextComponent,
     UIButtonComponent,
-    PlayerStatsComponent,
 )
 
 
@@ -20,7 +19,7 @@ class GameOverMenuBuilder:
         h = Settings.WINDOW.DESKTOP_HEIGHT
         cx = w // 2
 
-        # 1. THE GRIM TITLE
+        # TITLE
         title_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1
         world[title_id] = {
@@ -34,7 +33,7 @@ class GameOverMenuBuilder:
         }
         GameOverMenuBuilder._ui_ids.append(title_id)
 
-        # 2. SURVIVAL STATS
+        # SURVIVAL STATS
         stats_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1
 
@@ -55,7 +54,7 @@ class GameOverMenuBuilder:
         }
         GameOverMenuBuilder._ui_ids.append(stats_id)
 
-        # 3. EXIT BUTTON
+        # EXIT BUTTON
         btn_w, btn_h = 300, 60
         quit_btn_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1

@@ -1,4 +1,3 @@
-# ECS/Systems/AOESystem.py
 from Core import States
 from ECS.Components import AOEComponent, SpacialComponent, EnemyTag
 from ECS.Systems import CombatSystem
@@ -31,7 +30,6 @@ def process(world: dict, spatial_grid: dict, dt: float):
                     for e_id in list(spatial_grid[cell]):
                         enemy = world.get(e_id)
                         if enemy and EnemyTag in enemy:
-                            # BOOM: Use the CombatSystem!
                             CombatSystem.take_damage(
                                 world,
                                 spatial_grid,

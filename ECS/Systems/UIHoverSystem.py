@@ -1,4 +1,3 @@
-import pygame
 from Core import States
 from ECS.Components import UIButtonComponent, StatsButtonComponent
 

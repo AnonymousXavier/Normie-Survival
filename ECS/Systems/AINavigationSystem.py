@@ -14,12 +14,10 @@ def process(world: dict, global_event: list):
         if EnemyTag in world[obj_id] and VelocityComponent not in world[obj_id]:
             obj = world[obj_id]
 
-            # --- THE OVERRIDE FILTER ---
             # If this enemy is a Boss, and its State Machine is busy doing a special attack,
             # skip the Flow Field logic entirely. Let the BossSystem drive.
             if BossAIComponent in obj and obj[BossAIComponent].state != "CHASE":
                 continue
-            # ---------------------------
 
             gx, gy = obj[SpacialComponent].grid_pos
             if (gx, gy) in FlowFieldSystem.flow_field:

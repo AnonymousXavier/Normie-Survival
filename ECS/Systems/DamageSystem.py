@@ -24,7 +24,7 @@ def process(world: dict, spatial_grid: dict, dt: float):
     if not stats or not p_health or not p_hitbox:
         return
 
-    # --- SHIELD RECHARGE TIMER ---
+    # SHIELD RECHARGING
     if ShieldComponent in player:
         s = player[ShieldComponent]
         if not s.active:
@@ -32,14 +32,14 @@ def process(world: dict, spatial_grid: dict, dt: float):
             if s.timer >= s.recharge_delay:
                 s.active = True
                 s.timer = 0
-                s.current_hits = s.max_hits  # Reset hits on recharge!
+                s.current_hits = s.max_hits  # Reset hits on recharge
                 print("Shield Recharged!")
 
     if p_health.inv_timer > 0:
         p_health.inv_timer -= dt
         return
 
-    # --- CONTACT SENSOR ---
+    # CONTACT SENSOR
     p_rect = p_hitbox.rect
     p_grid_pos = player[SpacialComponent].grid_pos
 
@@ -63,6 +63,6 @@ def process(world: dict, spatial_grid: dict, dt: float):
                                 world, spatial_grid, States.PLAYER_ID, damage
                             )
 
-                            # Set i-frames
+                            # Set inv frames
                             p_health.inv_timer = p_health.inv_duration
                             return

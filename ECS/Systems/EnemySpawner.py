@@ -27,13 +27,7 @@ def process(world: dict, spatial_grid: dict, dt: float):
 def get_difficulty_mult():
     minutes = States.GAME_TIME / 60.0
 
-    # --- EXPONENTIAL TIME SCALING ---
-    # At 1 min: ~0.2x extra health
-    # At 5 min: ~2.2x extra health
-    # At 9 min: ~5.4x extra health (The wall!)
     time_factor = (minutes**1.5) * 0.2
-
-    # Kill factor: +0.05 every 50 kills (rewards fast killing but punishes stalling)
     kill_factor = (States.KILLS_COUNT // 50) * 0.05
 
     return 1.0 + time_factor + kill_factor
