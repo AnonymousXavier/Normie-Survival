@@ -1,4 +1,4 @@
-# 🧟‍♂️ Normie Survival v1.0
+# 🧟‍♂️ Normie Survival
 
 An intense, highly-optimized arena survival shooter built entirely from scratch in Python and Pygame. 
 
