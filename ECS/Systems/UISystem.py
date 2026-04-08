@@ -181,8 +181,8 @@ def apply_upgrade(action_key: str, player: dict):
         aoe.radius = 2.0 + (lvl * 0.4)
 
         # Massive damage scaling so it stays relevant
-        aoe.damage = 5 + (lvl * 3)
-        aoe.cooldown = max(0.4, 3.0 - (lvl * 0.25))
+        aoe.damage = 5 + (lvl * 4)
+        aoe.cooldown = max(0.2, 2.5 - (lvl * 0.25))
 
         # Handle Shield (Unlocks at Level 3 Defensive)
         if lvl >= 3:
@@ -209,16 +209,16 @@ def apply_upgrade(action_key: str, player: dict):
             w_stats.projectile_count = 3 + lvl
             new_count = 1 + (lvl // 3)
 
-        elif w_type == "sniper":
+        elif w_type == "pistol":
             w_stats.base_damage = 15 + (lvl * 5)
-            w_stats.base_fire_rate = max(0.8, 2.5 - (lvl * 0.15))
+            w_stats.base_fire_rate = max(0.15, 1.5 - (lvl * 0.2))
 
-            # Sniper shoots 1 heavy round, but it PIERCES!
-            w_stats.projectile_count = 1
+            # Pistol shoots 2 heavy round and it PIERCES!
+            w_stats.projectile_count = 2
             w_stats.pierce = 1 + lvl
 
-            # Physical orbiting guns: Adds 1 extra sniper every 2 levels
-            new_count = 1 + (lvl // 2)
+            # Physical orbiting guns: Adds 2 extra pistol every 3 levels
+            new_count = 1 + int(lvl / 2)
 
         else:
             new_count = 1

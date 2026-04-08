@@ -49,7 +49,7 @@ def spawn_player(
     new_id = States.NEXT_ENTITY_ID
     States.NEXT_ENTITY_ID += 1
 
-    if primary_weapon == "sniper":
+    if primary_weapon == "pistol":
         starting_stats = WeaponStats(
             base_damage=15,
             base_fire_rate=2.5,
@@ -356,7 +356,7 @@ def spawn_shotgun(
     return new_id
 
 
-def spawn_sniper(
+def spawn_pistol(
     world: dict,
     spatial_grid: dict,
     target_id: int,
@@ -366,7 +366,7 @@ def spawn_sniper(
     new_id = States.NEXT_ENTITY_ID
     States.NEXT_ENTITY_ID += 1
 
-    sniper = {
+    pistol = {
         SpacialComponent: SpacialComponent(
             grid_pos=(0, 0),
             rect=pygame.Rect((0, 0), (Cache.SPRITES.WEAPONS.SNIPER.get_size())),
@@ -384,13 +384,13 @@ def spawn_sniper(
             offset_angle=start_angle,
         ),
         CooldownComponent: CooldownComponent(
-            fire_rate=2.0, time_since_last_shot=initial_cooldown_offset
+            fire_rate=1.5, time_since_last_shot=initial_cooldown_offset
         ),
         RotationComponent: RotationComponent(),
-        WeaponComponent: WeaponComponent(weapon_type="sniper"),
+        WeaponComponent: WeaponComponent(weapon_type="pistol"),
         PowerUpTag: PowerUpTag(),
     }
-    world[new_id] = sniper
+    world[new_id] = pistol
     Misc.register_entity_in_grid(new_id, (0, 0), spatial_grid)
 
 
@@ -434,8 +434,8 @@ def refresh_weapon(world, spatial_grid, player_id, weapon_type, count):
                 start_angle=fan_angle,
                 initial_cooldown_offset=start_offset,
             )
-        elif weapon_type == "sniper":
-            spawn_sniper(
+        elif weapon_type == "pistol":
+            spawn_pistol(
                 world,
                 spatial_grid,
                 player_id,

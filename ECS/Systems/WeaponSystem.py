@@ -49,8 +49,8 @@ def process(world: dict, spatial_grid: dict, delta: float):
                 # --- CHECK THE WEAPON TYPE FOR AUDIO ---
                 if w_type == "shotgun":
                     AudioManager.play_sfx("shoot_shotgun")
-                elif w_type == "sniper":
-                    AudioManager.play_sfx("shoot_sniper")
+                elif w_type == "pistol":
+                    AudioManager.play_sfx("shoot_pistol")
 
                 # TRIGGER THE SHAKE
                 if camera_ent and CameraShakeComponent in camera_ent:

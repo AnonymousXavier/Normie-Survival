@@ -25,6 +25,7 @@ class PauseMenuBuilder:
         if not player:
             return
 
+        States.UI_DIRTY = True
         # GATHER DATA
         p_stats = player.get(PlayerStatsComponent)
         arsenal = player.get(ArsenalComponent)
@@ -63,7 +64,7 @@ class PauseMenuBuilder:
             # Calculate physical gun count dynamically based on the active weapon
             if p_wep == "shotgun":
                 guns["Gun Count"] = str(1 + (wep_lvl // 4))
-            elif p_wep == "sniper":
+            elif p_wep == "pistol":
                 guns["Gun Count"] = str(1 + (wep_lvl // 5))
             else:
                 guns["Gun Count"] = "1"
@@ -131,7 +132,7 @@ class PauseMenuBuilder:
         spawn_panel(f"ARSENAL (LVL {wep_lvl})", guns, (255, 150, 50), panel_h + padding)
         spawn_panel("UTILITY", utility, (50, 150, 255), (panel_h + padding) * 2)
 
-        # --- 3. GATHER ACTIVE UPGRADES ---
+        # GATHER ACTIVE UPGRADES
         active_upgrades = {}
         if p_stats and p_stats.upgrades_owned:
             for key, level in p_stats.upgrades_owned.items():
@@ -139,7 +140,7 @@ class PauseMenuBuilder:
                 display_name = key.replace("_", " ").title()
                 active_upgrades[display_name] = f"Level {level}"
 
-        # --- 4. BUILD RIGHT SIDE PANELS ---
+        # BUILD RIGHT SIDE PANELS
         # Panel 1: System Options (Top Right)
         opt_panel_h = int(panel_h * 1.3)
         opt_rect = pygame.Rect(right_start_x, start_y, panel_w, opt_panel_h)
@@ -175,7 +176,7 @@ class PauseMenuBuilder:
         }
         PauseMenuBuilder._ui_ids.append(upg_bg_id)
 
-        # --- 4.5. OVERLAY PLACEHOLDER TEXT (Only if empty) ---
+        # OVERLAY PLACEHOLDER TEXT (Only if empty)
         if not active_upgrades:
             center_text_x = right_start_x + (panel_w // 2)
             text_start_y = upg_start_y + 60
@@ -194,7 +195,7 @@ class PauseMenuBuilder:
             }
             PauseMenuBuilder._ui_ids.append(txt_id)
 
-        # --- 5. SPAWN TOGGLE BUTTONS ---# --- 3. GATHER ACTIVE UPGRADES ---
+        # GATHER ACTIVE UPGRADES
         active_upgrades = {}
         if p_stats and p_stats.upgrades_owned:
             for key, level in p_stats.upgrades_owned.items():
@@ -202,7 +203,7 @@ class PauseMenuBuilder:
                 display_name = key.replace("_", " ").title()
                 active_upgrades[display_name] = f"Level {level}"
 
-        # --- 4. BUILD RIGHT SIDE PANELS ---
+        # BUILD RIGHT SIDE PANELS
         # Panel 1: System Options (Top Right)
         opt_panel_h = int(panel_h * 1.3)
         opt_rect = pygame.Rect(right_start_x, start_y, panel_w, opt_panel_h)
@@ -238,7 +239,7 @@ class PauseMenuBuilder:
         }
         PauseMenuBuilder._ui_ids.append(upg_bg_id)
 
-        # --- 4.5. OVERLAY PLACEHOLDER TEXT (Only if empty) ---
+        # OVERLAY PLACEHOLDER TEXT (Only if empty)
         if not active_upgrades:
             center_text_x = right_start_x + (panel_w // 2)
             text_start_y = upg_start_y + 60
@@ -257,14 +258,13 @@ class PauseMenuBuilder:
             }
             PauseMenuBuilder._ui_ids.append(txt_id)
 
-        # --- 5. SPAWN TOGGLE BUTTONS ---
-        # (Leave your button logic exactly as it is down here!)
+        # SPAWN TOGGLE BUTTONS
         btn_w = int(panel_w * 0.85)
         btn_h = 40
         btn_spacing = 15
         btn_x = right_start_x + (panel_w // 2) - (btn_w // 2)
 
-        # DYNAMIC MATH: Calculates the exact empty space in the panel and centers the 3 buttons
+        # Calculates the exact empty space in the panel and centers the 3 buttons
         total_btn_h = (btn_h * 3) + (btn_spacing * 2)
         header_allowance = 40
         top_padding = ((opt_panel_h - header_allowance) - total_btn_h) // 2

@@ -18,6 +18,7 @@ class GameOverMenuBuilder:
     @staticmethod
     def build(world: dict):
         GameOverMenuBuilder.destroy(world)
+        States.UI_DIRTY = True
         w = Settings.WINDOW.DESKTOP_WIDTH
         h = Settings.WINDOW.DESKTOP_HEIGHT
         cx = w // 2
@@ -31,7 +32,7 @@ class GameOverMenuBuilder:
         arsenal = player.get(ArsenalComponent) if player else None
         wep = arsenal.primary_weapon if arsenal else "Unknown"
 
-        # --- THE SAVE HOOK ---
+        # THE SAVE HOOK
         SaveManager.save_run(
             level=lvl,
             kills=States.KILLS_COUNT,
@@ -76,7 +77,7 @@ class GameOverMenuBuilder:
         }
         GameOverMenuBuilder._ui_ids.append(stats_id)
 
-        # --- END GAME BUTTONS ---
+        # END GAME BUTTONS
         btn_w, btn_h = 350, 60
         btn_spacing = 20
         start_y = h * 0.55

@@ -18,6 +18,7 @@ class VictoryMenuBuilder:
     @staticmethod
     def build(world: dict):
         VictoryMenuBuilder.destroy(world)
+        States.UI_DIRTY = True
         w = Settings.WINDOW.DESKTOP_WIDTH
         h = Settings.WINDOW.DESKTOP_HEIGHT
         cx = w // 2

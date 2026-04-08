@@ -13,6 +13,8 @@ class WINDOW:
     HEIGHT = 500
     SIZE = WIDTH, HEIGHT
 
+    TITLE = "NORMIE SURVIVAL"
+
 
 class SPRITE:
     WIDTH = 16
@@ -111,3 +113,4 @@ class CONTROLS:
 
 
 window = pygame.display.set_mode(WINDOW.SIZE, pygame.RESIZABLE)
+pygame.display.set_caption(WINDOW.TITLE.capitalize())

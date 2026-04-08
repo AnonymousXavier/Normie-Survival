@@ -7,6 +7,7 @@ from ECS.Components import UITag, SpacialComponent, StatsButtonComponent, TextCo
 class LevelUpMenuBuilder:
     @staticmethod
     def build(options: list, current_level: int):
+        States.UI_DIRTY = True
         w = Settings.WINDOW.DESKTOP_WIDTH
         h = Settings.WINDOW.DESKTOP_HEIGHT
 

@@ -36,7 +36,7 @@ class ParticleManager:
 
         points.append(end_pos)
 
-        # Store the bolt. It will live for exactly 5 frames to give a satisfying "flash/fade"
+        # Store the bolt
         cls.lightning_bolts.append(
             {
                 "points": points,

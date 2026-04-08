@@ -18,12 +18,13 @@ class MainMenuBuilder:
     @staticmethod
     def build(world: dict):
         MainMenuBuilder.destroy(world)
+        States.UI_DIRTY = True
         w = Settings.WINDOW.DESKTOP_WIDTH
         h = Settings.WINDOW.DESKTOP_HEIGHT
         cx = w // 2
         cy = h // 2
 
-        # --- 1. COVER ART (Moody Background Watermark) ---
+        # COVER ART (Background Watermark)
         bg_size = min(w, h)
         bg_x = cx - (bg_size // 2)
         bg_y = cy - (bg_size // 2)
@@ -43,12 +44,11 @@ class MainMenuBuilder:
         }
         MainMenuBuilder._ui_ids.append(cover_id)
 
-        # --- 2. THE DUAL-PANEL LAYOUT MATH ---
+        # THE DUAL-PANEL LAYOUT MATH
         gap = 20
         total_w = min(560, w - 40)
-        panel_h = min(360, h - 140)  # Leaves room at the top for the title!
+        panel_h = min(360, h - 140)
 
-        # Left panel is narrow/vertical (40%) | Right panel is wider (60%)
         log_w = int((total_w - gap) * 0.40)
         menu_w = total_w - gap - log_w
 
@@ -57,7 +57,7 @@ class MainMenuBuilder:
         log_x = cx - (total_w // 2)
         menu_x = log_x + log_w + gap
 
-        # --- 3. PREMIUM TITLE (Top Center) ---
+        # PREMIUM TITLE (Top Center)
         title_y = panel_y - 70
 
         shadow_id = States.NEXT_ENTITY_ID
@@ -68,7 +68,7 @@ class MainMenuBuilder:
                 rect=pygame.Rect(cx + 4, title_y + 4, 0, 0)
             ),
             TextComponent: TextComponent(
-                text="NORMIE SURVIVAL", color=(20, 20, 20), is_header=True
+                text=Settings.WINDOW.TITLE, color=(20, 20, 20), is_header=True
             ),
         }
         MainMenuBuilder._ui_ids.append(shadow_id)
@@ -79,7 +79,7 @@ class MainMenuBuilder:
             UITag: UITag(),
             SpacialComponent: SpacialComponent(rect=pygame.Rect(cx, title_y, 0, 0)),
             TextComponent: TextComponent(
-                text="NORMIE SURVIVAL", color=(255, 215, 0), is_header=True
+                text=Settings.WINDOW.TITLE, color=(255, 215, 0), is_header=True
             ),
         }
         MainMenuBuilder._ui_ids.append(title_id)
@@ -102,11 +102,10 @@ class MainMenuBuilder:
             log_title = "LAST RUN"
             log_color = (255, 150, 50)
 
-            # 1. Leave seconds as a raw float!
+            # Leave seconds as a raw float!
             mins = int(run["time_survived"] // 60)
             secs = run["time_survived"] % 60
 
-            # 2. Format: 05 means 5 total characters (e.g. "04.50"), .2f means 2 decimal places
             log_stats["Time"] = f"{mins}:{secs:05.2f}"
 
             log_stats["Level"] = str(run["level"])
@@ -128,7 +127,7 @@ class MainMenuBuilder:
         }
         MainMenuBuilder._ui_ids.append(log_panel_id)
 
-        # --- 5. RIGHT PANEL: MAIN MENU (Deployment) ---
+        # RIGHT PANEL: MAIN MENU (Deployment)
         menu_panel_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1
         world[menu_panel_id] = {
@@ -142,7 +141,7 @@ class MainMenuBuilder:
         }
         MainMenuBuilder._ui_ids.append(menu_panel_id)
 
-        # --- 6. DEPLOY BUTTONS ---
+        # DEPLOY BUTTONS
         btn_w = min(260, menu_w - 40)
         btn_h = 50
         btn_spacing = 15
@@ -170,9 +169,9 @@ class MainMenuBuilder:
             MainMenuBuilder._ui_ids.append(btn_id)
 
         create_deploy_btn("SHOTGUN", "shotgun", (200, 50, 50), 0)
-        create_deploy_btn("SNIPER", "sniper", (50, 100, 200), btn_h + btn_spacing)
+        create_deploy_btn("PISTOL", "pistol", (50, 100, 200), btn_h + btn_spacing)
 
-        # --- 7. CONTROLS IMAGE ---
+        # CONTROLS IMAGE
         ctrl_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1
 

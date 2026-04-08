@@ -1,6 +1,4 @@
 import ctypes
-import cProfile
-import pstats
 
 # --- THE WINDOWS 150% SCALING FIX ---
 # This forces Windows to give Pygame the TRUE physical resolution
@@ -11,6 +9,8 @@ try:
     ctypes.windll.user32.SetProcessDPIAware()
 except AttributeError:
     pass  # Safely ignores the code if running on Mac or Linux
+
+# Above just prevents scaling inconsistencies
 
 import pygame
 from Core import States
@@ -54,7 +54,7 @@ from ECS.Systems import (
 visible_entities = []
 
 dt = 0
-frames = {"flow_field": 0, "ui": 0}
+frame = 0
 
 pygame.init()
 pygame.mixer.init()
@@ -102,7 +102,7 @@ class Main:
 
     def update(self):
         global visible_entities
-        global dt
+        global dt, frame
 
         events = []
         dt = self.clock.tick(Settings.UPDATE.FPS) / 1000
@@ -167,13 +167,11 @@ class Main:
             OrbitalSystem.process(States.world, States.spatial_grid, dt)
 
             CameraSystem.process(States.world, States.camera, dt)
-            if frames["flow_field"] >= (
-                Settings.UPDATE.FPS // Settings.UPDATE.FIELD_UPDATES_PER_SEC
-            ):
+            if frame >= (Settings.UPDATE.FPS // Settings.UPDATE.FIELD_UPDATES_PER_SEC):
                 FlowFieldSystem.flow_field = FlowFieldSystem.create_flow_field(
                     States.world[States.PLAYER_ID][SpacialComponent].grid_pos
                 )
-                frames["flow_field"] = 0
+                frame = 0
 
             # --- DEATH COUNTDOWN ---
             player = States.world.get(States.PLAYER_ID)
@@ -200,12 +198,9 @@ class Main:
             States.spatial_grid, CameraSystem.get_boundary_of(States.camera)
         )
 
-        # --- ADD THIS LINE ---
-        # Cache the current FPS globally so UI systems can read it
         States.CURRENT_FPS = int(self.clock.get_fps())
 
-        for key in frames:
-            frames[key] += 1
+        frame += 1
 
     def trigger_boss_spawn(self):
         Factories.spawn_boss(

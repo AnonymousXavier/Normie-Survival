@@ -42,7 +42,7 @@ def process(world: dict, spatial_grid: dict, dt: float):
                     for e_id in list(spatial_grid[cell]):
                         enemy = world.get(e_id)
                         if enemy and EnemyTag in enemy:
-                            # 1. VISUALS: Get physical center of the enemy BEFORE they take damage/die
+                            # VISUALS: Get physical center of the enemy BEFORE they take damage/die
                             e_center = enemy[SpacialComponent].rect.center
 
                             # Draw lightning bolt from player to enemy

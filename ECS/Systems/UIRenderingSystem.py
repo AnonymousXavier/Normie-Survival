@@ -131,9 +131,6 @@ def process(world: dict, window: pygame.Surface):
         offset_y = (win_h - States.CACHED_UI_SURFACE.get_height()) // 2
         window.blit(States.CACHED_UI_SURFACE, (offset_x, offset_y))
 
-    # ==========================================
-    # 3. THE DYNAMIC HUD (Runs every frame)
-    # ==========================================
     if States.CURRENT_STATE == "PLAYING" and not States.IS_LEVELING_UP:
         # 1. BOSS TIMER (Top Center)
         minutes, seconds = int(States.BOSS_TIMER // 60), int(States.BOSS_TIMER % 60)
@@ -153,7 +150,7 @@ def process(world: dict, window: pygame.Surface):
         window.blit(bg_surf, bg_rect)
         window.blit(timer_surf, timer_rect)
 
-        # 2. KILL COUNT (Top Right)
+        # KILL COUNT (Top Right)
         kills_text = f"KILLS: {States.KILLS_COUNT}"
         base_kills_surf = TITLE_FONT.render(kills_text, True, (255, 215, 0))
 
@@ -174,7 +171,7 @@ def process(world: dict, window: pygame.Surface):
         window.blit(k_bg_surf, k_bg_rect)
         window.blit(kills_surf, kills_rect)
 
-        # 3. FPS COUNTER (Top Left)
+        # FPS COUNTER (Top Left)
         fps_color = (
             (0, 255, 0)
             if States.CURRENT_FPS >= 55

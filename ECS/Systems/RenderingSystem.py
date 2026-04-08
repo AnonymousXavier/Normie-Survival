@@ -53,7 +53,6 @@ def draw_game_entities(
 
     render_surface = pygame.Surface((cbw, cbh))
 
-    # --- 1. PROCEDURAL INFINITE FLOOR ---
     # Fill the base background with a very deep, moody blue/black
     render_surface.fill((10, 10, 14))
 

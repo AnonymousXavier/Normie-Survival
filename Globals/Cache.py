@@ -48,7 +48,7 @@ class SPRITES:
 
     class WEAPONS:
         SHOTGUN = SpriteLoader.load_sprite("Assets/Sprites/Weapons/shotgun.png")
-        SNIPER = SpriteLoader.load_sprite("Assets/Sprites/Weapons/sniper.png")
+        SNIPER = SpriteLoader.load_sprite("Assets/Sprites/Weapons/pistol.png")
 
     class MENU:
         COVER_ART = SpriteLoader.load_sprite(

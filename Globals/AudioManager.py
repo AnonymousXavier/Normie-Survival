@@ -9,17 +9,15 @@ class AudioManager:
 
     @classmethod
     def load_assets(cls):
-        audio_dir = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), "Assets", "Audio"
-        )
+        audio_dir = "Assets/Audio"
 
         try:
             # Match the exact file names from your screenshot
             cls.SFX["shoot_shotgun"] = pygame.mixer.Sound(
                 os.path.join(audio_dir, "shotgun.wav")
             )
-            cls.SFX["shoot_sniper"] = pygame.mixer.Sound(
-                os.path.join(audio_dir, "sniper.wav")
+            cls.SFX["shoot_pistol"] = pygame.mixer.Sound(
+                os.path.join(audio_dir, "pistol.wav")
             )
             cls.SFX["gem_pickup"] = pygame.mixer.Sound(
                 os.path.join(audio_dir, "gem.wav")
@@ -41,7 +39,7 @@ class AudioManager:
             # Audio Mixing: Turn down the gem pickup so it doesn't drown out the guns
             cls.SFX["gem_pickup"].set_volume(0.3)
             cls.SFX["shoot_shotgun"].set_volume(0.6)
-            cls.SFX["shoot_sniper"].set_volume(0.7)
+            cls.SFX["shoot_pistol"].set_volume(0.7)
 
         except FileNotFoundError as e:
             print(f"⚠️ Audio File Missing: {e}")

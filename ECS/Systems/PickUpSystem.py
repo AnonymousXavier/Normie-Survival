@@ -11,5 +11,4 @@ def process(world: dict, spatial_grid: dict):
 
     if p_pos in spatial_grid:
         for entity_id in list(spatial_grid[p_pos]):
-            target_entity = world.get(entity_id)
             pass
