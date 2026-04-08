@@ -6,7 +6,7 @@
 
 > **An intense, highly-optimized arena survival shooter built entirely from scratch in Python. Features a custom Entity-Component-System (ECS), bespoke flow-field pathfinding, and a hardware-accelerated UI caching engine to maintain a locked 60 FPS.**
 
-![Gameplay Banner / Title Screen](DocFiles/gameplay.gif)
+![Gameplay Banner / Title Screen](docs/gameplay.gif)
 
 ## 📖 The Hook
 
