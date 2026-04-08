@@ -4,7 +4,7 @@ An intense, highly-optimized arena survival shooter built entirely from scratch 
 
 Survive the relentless horde for 3 minutes, level up your arsenal, and defeat the Boss. Featuring a custom Entity-Component-System (ECS), a dynamic AI Director, and an engine optimized to handle hundreds of active entities at a locked 60 FPS.
 
-![Gameplay Screenshot] (readme_files/screenshot.png)
+![Gameplay Screenshot] (DocFiles/gameplay.gif)
 
 ## ✨ Key Features
 
