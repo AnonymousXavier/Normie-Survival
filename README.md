@@ -19,15 +19,12 @@ But the AI Director is watching. As time ticks down, spawn rates multiply and el
 ## 📸 Visual Showcase
 
 ### 1. The Arsenal (Weapon Mastery)
-*(Add a gif of the shotgun/sniper shredding enemies here)*
 ![Combat](docs/combat.gif)
 
 ### 2. The Tesla Web (Area of Effect)
-*(Add a gif of the new jagged lightning striking multiple enemies here)*
 ![Tesla Web](docs/tesla_web.gif)
 
 ### 3. The Boss Encounter
-*(Add a gif of the boss spawning/dashing here)*
 ![Boss Fight](docs/boss.gif)
 
 ## 🛠️ Technical Architecture (The Engine)
@@ -52,7 +49,7 @@ This game isn't just a massive `while` loop. It runs on a custom-built, highly d
    ```
 2. Install the required dependencies:
    ```bash
-   pip install pygame
+   pip install pygame-ce
    ```
 3. Run the engine:
    ```bash
