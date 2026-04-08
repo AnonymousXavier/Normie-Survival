@@ -8,19 +8,6 @@ from Globals import Enums, Settings
 
 
 def process(world: dict, global_events: list, dt: float):
-    if States.PLAYER_ID not in world:
-        return
-
-    player = world[States.PLAYER_ID]
-
-    if StunComponent in player:
-        player[StunComponent].timer -= dt
-        if player[StunComponent].timer <= 0:
-            del player[StunComponent]  # Stun wears off
-            print("⚡ CONTROL RESTORED!")
-        else:
-            return  # paralyzed. No movement input is processed.
-
     # MOUSE TRANSLATION
     raw_mx, raw_my = pygame.mouse.get_pos()
     win_w, win_h = pygame.display.get_surface().get_size()
@@ -60,30 +47,46 @@ def process(world: dict, global_events: list, dt: float):
             Settings.window = pygame.display.set_mode(
                 Settings.WINDOW.SIZE, pygame.RESIZABLE
             )
+
+            States.UI_DIRTY = True
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_F11:
                 pygame.display.toggle_fullscreen()
+                States.UI_DIRTY = True
             if event.key == pygame.K_ESCAPE:
                 # Toggle the Pause State!
                 if not States.IS_LEVELING_UP:  # Don't pause while leveling up
                     States.IS_PAUSED = not States.IS_PAUSED
 
                     if States.IS_PAUSED:
-                        print("⏸️ GAME PAUSED")
                         PauseMenuBuilder.build(world)  # Call builder
                     else:
-                        print("▶️ GAME RESUMED")
                         PauseMenuBuilder.destroy(world)  # Close the menu
+
+                States.UI_DIRTY = True
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             # Broadcast a clean, translated click event for the ClickingSystem!
             global_events.append(
                 {"type": Enums.EVENT_TYPES.MOUSE_CLICK, "pos": (logical_mx, logical_my)}
             )
+            States.UI_DIRTY = True
 
         ClickingSystem.process(States.world, global_events, event)
 
     if States.IS_PAUSED or States.IS_LEVELING_UP:
         return
+
+    if States.PLAYER_ID not in world:
+        return
+
+    player = world[States.PLAYER_ID]
+
+    if StunComponent in player:
+        player[StunComponent].timer -= dt
+        if player[StunComponent].timer <= 0:
+            del player[StunComponent]  # Stun wears off
+        else:
+            return  # paralyzed. No movement input is processed.
 
     # Handle Player Movements
     pressed_keys = pygame.key.get_pressed()

@@ -58,9 +58,9 @@ class GameOverMenuBuilder:
         stats_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1
 
-        # Format the raw seconds into MM:SS
+        # Leave secs as a float!
         mins = int(States.GAME_TIME // 60)
-        secs = int(States.GAME_TIME % 60)
+        secs = States.GAME_TIME % 60
 
         world[stats_id] = {
             UITag: UITag(),
@@ -68,26 +68,45 @@ class GameOverMenuBuilder:
                 rect=pygame.Rect(cx - 200, h * 0.4, 400, 50)
             ),
             TextComponent: TextComponent(
-                text=f"Survived: {mins}:{secs:02d}   |   Kills: {States.KILLS_COUNT}",
+                # Apply the :05.2f formatter here too!
+                text=f"Survived: {mins}:{secs:05.2f}   |   Kills: {States.KILLS_COUNT}",
                 color=(255, 255, 255),
                 is_header=False,
             ),
         }
         GameOverMenuBuilder._ui_ids.append(stats_id)
 
-        # EXIT BUTTON
-        btn_w, btn_h = 300, 60
+        # --- END GAME BUTTONS ---
+        btn_w, btn_h = 350, 60
+        btn_spacing = 20
+        start_y = h * 0.55
+
+        # 1. RETURN TO MENU BUTTON
+        retry_btn_id = States.NEXT_ENTITY_ID
+        States.NEXT_ENTITY_ID += 1
+        world[retry_btn_id] = {
+            UITag: UITag(),
+            UIButtonComponent: UIButtonComponent(
+                rect=pygame.Rect(cx - (btn_w // 2), start_y, btn_w, btn_h),
+                text="RETURN TO MAINMENU",
+                color=(50, 150, 255),  # Sleek Blue
+                action={"type": "RETURN_TO_MENU"},
+            ),
+        }
+        GameOverMenuBuilder._ui_ids.append(retry_btn_id)
+
+        # 2. QUIT TO DESKTOP BUTTON
         quit_btn_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1
         world[quit_btn_id] = {
             UITag: UITag(),
             UIButtonComponent: UIButtonComponent(
-                rect=pygame.Rect(cx - (btn_w // 2), h * 0.6, btn_w, btn_h),
-                text="EXIT GAME",
-                color=(150, 50, 50),
-                action={
-                    "type": "QUIT_GAME"
-                },  # Reuses the exact same logic from the Victory screen!
+                rect=pygame.Rect(
+                    cx - (btn_w // 2), start_y + btn_h + btn_spacing, btn_w, btn_h
+                ),
+                text="QUIT GAME",
+                color=(200, 50, 50),  # Aggressive Red
+                action={"type": "QUIT_GAME"},
             ),
         }
         GameOverMenuBuilder._ui_ids.append(quit_btn_id)

@@ -153,7 +153,7 @@ class ExperienceGemComponent:
 
 @dataclass(kw_only=True, slots=True)
 class CollectorComponent:
-    range: float = 1.0  # Pickup radius in grid cells
+    range: float = 3.0  # Pickup radius in grid cells
 
 
 @dataclass(kw_only=True)

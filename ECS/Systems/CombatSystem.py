@@ -18,14 +18,13 @@ from ECS.Components import (
 )
 from ECS import Factories
 from Globals.AudioManager import AudioManager
+from Globals.ParticleManager import ParticleManager
 
 
 def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None):
     target = world.get(target_id)
     if not target:
         return
-
-    AudioManager.play_sfx("hit")
 
     # If the target is already dead, ignore this extra attack
     if HealthComponent in target and target[HealthComponent].hp <= 0:
@@ -46,6 +45,7 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
     # APPLY DAMAGE
     is_dead = False
     if PlayerStatsComponent in target:
+        AudioManager.play_sfx("hit")
         stats = target[PlayerStatsComponent]
         stats.current_hp -= amount
         is_dead = stats.current_hp <= 0
@@ -57,9 +57,10 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
     target[HealthComponent].hit_timer = 0.1
     # DEATH
     if is_dead:
+        States.KILLS_COUNT += 1
+        enemy = target[SpacialComponent].rect
+        ParticleManager.emit_sparks(enemy.x, enemy.y, color=(200, 50, 50), count=15)
         if BossTag in target:
-            print("🏆 BOSS DEFEATED: CLEARING THE HORDE!")
-
             for e_id, e_obj in list(world.items()):
                 if EnemyTag in e_obj and BossTag not in e_obj:
                     g_pos = e_obj[SpacialComponent].grid_pos
@@ -130,7 +131,6 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
                 target[AnimationComponent].state = Enums.ANIM_STATES.DEAD
                 target[AnimationComponent].current_frame = 0
                 target[AnimationComponent].speed = 0
-            print("Player Tombstoned!")
 
 
 def get_gem_value(base_value):

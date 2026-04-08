@@ -65,7 +65,7 @@ def spawn_player(
             projectile_count=3,
             spread_angle=15.0,
             speed=35.0,
-            pierce=1,
+            pierce=2,  # Constnt 2
         )
 
     player = {
@@ -277,7 +277,6 @@ def spawn_boss(world, spatial_grid, mult: float):
 
     world[new_id] = boss
     Misc.register_entity_in_grid(new_id, (spawn_x, spawn_y), spatial_grid)
-    print("🚨 BOSS SPAWNED! 🚨")
 
     return new_id
 

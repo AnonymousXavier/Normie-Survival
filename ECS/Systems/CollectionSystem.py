@@ -67,7 +67,6 @@ def process(world: dict, spatial_grid: dict, dt: float):
 
                         # CHECK FOR THE WIN CONDITION
                         if MegaGemTag in world[gem_id]:
-                            print("💎 MEGA GEM COLLECTED! TRIGGERING VICTORY!")
                             States.CURRENT_STATE = "VICTORY"
                             VictoryMenuBuilder.build(world)
                             AudioManager.play_sfx("victory")
@@ -88,7 +87,6 @@ def process(world: dict, spatial_grid: dict, dt: float):
                                 leveled_up_this_frame = True
 
                             if leveled_up_this_frame:
-                                print(f"✨ LEVEL UP! Reached Level {p_stats.level}")
                                 AudioManager.play_sfx("level_up")
                                 States.IS_LEVELING_UP = True
 
@@ -128,8 +126,6 @@ def level_up(stats):
     stats.level += 1
     stats.xp -= stats.xp_to_next_level  # Keep rollover XP
     stats.xp_to_next_level = int(stats.xp_to_next_level * 1.25)
-
-    print(f"✨ LEVEL UP! Reached Level {stats.level}")
 
     # Get options and build UI
     options = Upgrades.get_random_upgrades(stats.upgrades_owned)

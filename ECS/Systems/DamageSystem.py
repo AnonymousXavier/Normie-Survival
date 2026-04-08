@@ -33,7 +33,6 @@ def process(world: dict, spatial_grid: dict, dt: float):
                 s.active = True
                 s.timer = 0
                 s.current_hits = s.max_hits  # Reset hits on recharge
-                print("Shield Recharged!")
 
     if p_health.inv_timer > 0:
         p_health.inv_timer -= dt

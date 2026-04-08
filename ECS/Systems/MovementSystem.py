@@ -1,7 +1,14 @@
-from ECS.Components import EnemyTag, PlayerInputTag, SpacialComponent, VelocityComponent, FacingDirectionComponent
+from ECS.Components import (
+    EnemyTag,
+    PlayerInputTag,
+    SpacialComponent,
+    VelocityComponent,
+    FacingDirectionComponent,
+)
 from Globals import Enums, Settings, Misc
 
 frame = 0
+
 
 def process(world: dict, spatial_grid: dict, global_event: list, delta: float):
     global frame
@@ -9,7 +16,7 @@ def process(world: dict, spatial_grid: dict, global_event: list, delta: float):
     if frame % (Settings.UPDATE.FPS / Settings.UPDATE.INPUT_CHECKS_PER_SEC) == 0:
         for event in global_event:
             if event["type"] == Enums.EVENT_TYPES.MOVEMENT_INTENT:
-                obj_id = event["entity_id"] 
+                obj_id = event["entity_id"]
                 if SpacialComponent in world[obj_id]:
                     if VelocityComponent in world[obj_id]:
                         continue
@@ -22,9 +29,12 @@ def process(world: dict, spatial_grid: dict, global_event: list, delta: float):
                     tx, ty = nx * Settings.SPRITE.WIDTH, ny * Settings.SPRITE.HEIGHT
 
                     speed = get_movement_speed(obj)
-                    
 
-                    world[obj_id][VelocityComponent] = VelocityComponent(target=(tx, ty), position=world[obj_id][SpacialComponent].rect.topleft, speed=speed)
+                    world[obj_id][VelocityComponent] = VelocityComponent(
+                        target=(tx, ty),
+                        position=world[obj_id][SpacialComponent].rect.topleft,
+                        speed=speed,
+                    )
 
                     if dx != 0 or dy != 0:
                         if FacingDirectionComponent in obj:
@@ -48,17 +58,22 @@ def process(world: dict, spatial_grid: dict, global_event: list, delta: float):
                 obj[SpacialComponent].rect.topleft = tx, ty
                 objects_done_with_interpolation.append(obj_id)
 
-                continue 
+                continue
 
-            obj[VelocityComponent].position = Misc.move_towards((px, py), (tx, ty), speed * delta)
-            obj[SpacialComponent].rect.topleft = obj[VelocityComponent].position  
+            obj[VelocityComponent].position = Misc.move_towards(
+                (px, py), (tx, ty), speed * delta
+            )
+            obj[SpacialComponent].rect.topleft = obj[VelocityComponent].position
 
     for obj_id in objects_done_with_interpolation:
         del world[obj_id][VelocityComponent]
 
     frame += 1
 
-def move_entity_on_spatial_grid(entity_id: int, new_position: tuple, world:dict, spatial_grid: dict):
+
+def move_entity_on_spatial_grid(
+    entity_id: int, new_position: tuple, world: dict, spatial_grid: dict
+):
     obj = world[entity_id]
     old_pos = obj[SpacialComponent].grid_pos
 

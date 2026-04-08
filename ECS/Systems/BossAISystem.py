@@ -28,7 +28,6 @@ def process(world: dict, spatial_grid: dict, dt: float):
 
                     # DISABLE PLAYER MOVEMENT
                     player[StunComponent] = StunComponent(timer=2.0)
-                    print("⚠️ BOSS ACTIVATING GRAVITY WELL! PLAYER PARALYZED!")
 
             # THE GRAVITY WELL
             elif boss_ai.state == "GRAVITY_WELL":
@@ -65,7 +64,6 @@ def process(world: dict, spatial_grid: dict, dt: float):
                     boss_ai.state_timer = 0.3
                     boss_ai.dash_target_x = p_pos[0]
                     boss_ai.dash_target_y = p_pos[1]
-                    print("🔴 BOSS IS DASHING!")
 
             # THE WINDUP
             elif boss_ai.state == "DASH_WINDUP":

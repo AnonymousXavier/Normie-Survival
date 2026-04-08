@@ -9,3 +9,5 @@ def process(world: dict):
         btn = obj.get(UIButtonComponent) or obj.get(StatsButtonComponent)
         if btn:
             btn.is_hovered = btn.rect.collidepoint(mouse_pos)
+            if btn.is_hovered:
+                States.UI_DIRTY = True

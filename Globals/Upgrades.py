@@ -6,8 +6,8 @@ UPGRADE_POOL = {
         "max_level": 40,
     },  # Replaces "shotgun" and "sniper"
     "defensives": {"text": "Defensive Systems", "max_level": 20},
-    "passives": {"text": "Fitness Survival", "max_level": 20},
-    "pickup": {"text": "Magnetism", "max_level": 10},
+    "passives": {"text": "Physical Upgrades", "max_level": 20},
+    "pickup": {"text": "XP Magnet", "max_level": 10},
 }
 
 

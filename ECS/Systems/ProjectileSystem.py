@@ -1,6 +1,7 @@
 from ECS.Components import ProjectileComponent, SpacialComponent
 from ECS.Systems import CameraSystem
 from Globals import Misc, Settings
+from Globals.ParticleManager import ParticleManager
 
 
 def process(world: dict, spatial_grid: dict, camera: dict, delta: float):
@@ -50,6 +51,26 @@ def process(world: dict, spatial_grid: dict, camera: dict, delta: float):
 
     # delete off-screen bullets
     for obj_id in bullets_to_delete:
+        bullet = world[obj_id][SpacialComponent].rect
+        emit_bullet_waste(bullet, cam_boundary)
+
         grid_pos = world[obj_id][SpacialComponent].grid_pos
         Misc.remove_entity_from_grid(obj_id, grid_pos, spatial_grid)
         del world[obj_id]
+
+
+def emit_bullet_waste(bullet_rect, cam_boundary):
+    left, right = (
+        cam_boundary["left"] * Settings.CELLS.WIDTH,
+        cam_boundary["right"] * Settings.CELLS.WIDTH,
+    )
+    top, bottom = (
+        cam_boundary["top"] * Settings.CELLS.HEIGHT,
+        cam_boundary["bottom"] * Settings.CELLS.HEIGHT,
+    )
+    clamped_centerx = max(left, min(right, bullet_rect.centerx))
+    clamped_centery = max(top, min(bottom, bullet_rect.centery))
+
+    ParticleManager.emit_sparks(
+        clamped_centerx, clamped_centery, color=(255, 255, 100), count=5
+    )

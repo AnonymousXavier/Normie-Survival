@@ -49,7 +49,7 @@ class AudioManager:
         try:
             cls.MUSIC_TRACKS["bg_music"] = os.path.join(audio_dir, "bg_music.ogg")
         except Exception as e:
-            print(f"⚠️ Music File Error: {e}")
+            print(f"Music File Error: {e}")
 
         print("Audio Loaded successfully")
 
@@ -58,16 +58,12 @@ class AudioManager:
         if Settings.GAME_OPTIONS.SOUND and sound_name in cls.SFX:
             cls.SFX[sound_name].play()
 
-            print(f"Playing { sound_name}")
-
     @classmethod
     def play_music(cls, track_name):
         if Settings.GAME_OPTIONS.MUSIC and track_name in cls.MUSIC_TRACKS:
             if not pygame.mixer.music.get_busy():
                 pygame.mixer.music.load(cls.MUSIC_TRACKS[track_name])
                 pygame.mixer.music.play(-1)  # Loop forever
-
-            print(f"Playing { track_name}")
         else:
             pygame.mixer.music.stop()
 

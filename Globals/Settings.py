@@ -13,8 +13,6 @@ class WINDOW:
     HEIGHT = 500
     SIZE = WIDTH, HEIGHT
 
-    CLOCK = pygame.Clock()
-
 
 class SPRITE:
     WIDTH = 16
@@ -30,6 +28,8 @@ class CELLS:
 
 class UPDATE:
     INPUT_CHECKS_PER_SEC = 15
+    UI_UPDATES_PER_SEC = 1
+    FIELD_UPDATES_PER_SEC = 1
     FPS = 60
 
 
@@ -42,16 +42,17 @@ class GAME:
 
     FIELD_OF_VIEW_IN_PERCENT = 0.8  # Renderable Region Isze compared to window size
 
-    ALLOWABLE_NUMBER_OF_ENEMIES_ON_SCREEN = 100
+    ALLOWABLE_NUMBER_OF_ENEMIES_ON_SCREEN = 15
+    MAX_ENEMIES_SPAWNABLE = 250
     MAX_DISTANCE_FROM_PLAYER = 25
 
     DEFAULT_PLAYER_HP = 10
     DEFAULT_ENEMY_HP = 3
 
     XP_GEM_SIZE = (4, 4)
-    TIME_ELAPSED_TO_ENEMIES_RATIO = 5  # Increase by n every min
+    TIME_ELAPSED_TO_ENEMIES_RATIO = 1  # Increase by n every min
 
-    BOSS_SPAWN_TIME_DELAY = 600  # secs
+    BOSS_SPAWN_TIME_DELAY = 210  # secs
     BOSS_STRENGTH_MULTIPLIER = 100
     STRONGER_ENEMIES_MULTIPLIER = 5
     PLAYER_LEVEL_TO_ENEMY_HEALTH_EXPONENT = 0
@@ -65,7 +66,7 @@ class GAME:
 class GAME_OPTIONS:
     SOUND = True
     MUSIC = True
-    SCREEN_SHAKE = False
+    SCREEN_SHAKE = True
 
 
 class COLOURS:

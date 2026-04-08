@@ -1,14 +1,14 @@
 {
     "last_run": {
-        "level": 28,
-        "kills": 0,
-        "time_survived": 610.5059999999835,
+        "level": 18,
+        "kills": 807,
+        "time_survived": 231.03699999999415,
         "weapon": "shotgun"
     },
     "last_successful_run": {
-        "level": 27,
-        "kills": 0,
-        "time_survived": 609.681999999983,
+        "level": 18,
+        "kills": 807,
+        "time_survived": 231.03699999999415,
         "weapon": "shotgun"
     }
 }

@@ -13,6 +13,7 @@ from ECS.Components import (
 from ECS.Builders.MainMenuBuilder import MainMenuBuilder
 from ECS.Builders.PauseMenuBuilder import PauseMenuBuilder
 from ECS.Builders.VictoryMenuBuilder import VictoryMenuBuilder
+from ECS.Builders.GameOverMenuBuilder import GameOverMenuBuilder
 
 from ECS import Factories
 from Globals import Upgrades
@@ -26,7 +27,34 @@ UI_FONT = pygame.font.SysFont("Arial", 20, bold=True)
 
 def process_events(world: dict, events: list):
     for event in events:
-        if event.get("type") == "UPGRADE_SELECTED":
+        if event.get("type") == "RETURN_TO_MENU":
+            AudioManager.stop_music()
+
+            # Delete everything that isn't a UI element
+            entities_to_delete = [
+                e_id for e_id, obj in States.world.items() if UITag not in obj
+            ]
+            for e_id in entities_to_delete:
+                del States.world[e_id]
+
+            # Clear the physical collision grid
+            States.spatial_grid.clear()
+
+            # Reset all Global Tracking States
+            States.reset()
+
+            # Destroy any lingering overlay menus
+
+            GameOverMenuBuilder.destroy(States.world)
+            VictoryMenuBuilder.destroy(States.world)
+            PauseMenuBuilder.destroy(States.world)
+
+            # Rebuild the Main Menu and shift the engine state
+            MainMenuBuilder.build(States.world)
+            States.CURRENT_STATE = "MENU"
+            States.UI_DIRTY = True
+
+        elif event.get("type") == "UPGRADE_SELECTED":
             apply_upgrade(event["buff"], world[States.PLAYER_ID])
 
             entities_to_delete = [e_id for e_id, obj in world.items() if UITag in obj]
@@ -34,27 +62,24 @@ def process_events(world: dict, events: list):
                 del world[e_id]
 
             States.IS_LEVELING_UP = False
-            print("Game Resumed!")
+            States.UI_DIRTY = True
 
         elif event.get("type") == "TOGGLE_SOUND":
             Settings.GAME_OPTIONS.SOUND = not Settings.GAME_OPTIONS.SOUND
-            print(f"Sound is now: {'ON' if Settings.GAME_OPTIONS.SOUND else 'OFF'}")
 
             PauseMenuBuilder.destroy(world)
             PauseMenuBuilder.build(world)
+            States.UI_DIRTY = True
 
         elif event.get("type") == "TOGGLE_SCREEN_SHAKE":
             Settings.GAME_OPTIONS.SCREEN_SHAKE = not Settings.GAME_OPTIONS.SCREEN_SHAKE
-            print(
-                f"Screen Shake is now: {'ON' if Settings.GAME_OPTIONS.SCREEN_SHAKE else 'OFF'}"
-            )
 
             PauseMenuBuilder.destroy(world)
             PauseMenuBuilder.build(world)
+            States.UI_DIRTY = True
 
         elif event.get("type") == "TOGGLE_MUSIC":
             Settings.GAME_OPTIONS.MUSIC = not Settings.GAME_OPTIONS.MUSIC
-            print(f"Music is now: {'ON' if Settings.GAME_OPTIONS.MUSIC else 'OFF'}")
 
             if Settings.GAME_OPTIONS.MUSIC:
                 AudioManager.play_music("bg_music")
@@ -63,10 +88,10 @@ def process_events(world: dict, events: list):
 
             PauseMenuBuilder.destroy(world)
             PauseMenuBuilder.build(world)
+            States.UI_DIRTY = True
 
         elif event.get("type") == "START_GAME":
             chosen_weapon = event.get("weapon")
-            print(f"Starting run with: {chosen_weapon}")
 
             # Clear the menu UI
 
@@ -89,22 +114,17 @@ def process_events(world: dict, events: list):
             States.camera = Factories.new_camera(
                 (0, 0), Settings.CAMERA.SIZE, States.PLAYER_ID
             )
+            States.UI_DIRTY = True
+
         elif event.get("type") == "QUIT_GAME":
-            print("Game Exited via Victory Screen")
             States.GAME_RUNNING = False
+            States.UI_DIRTY = True
 
         elif event.get("type") == "CONTINUE_RUN":
-            print("Victory Lap Initiated! Entering Endless Mode...")
-
-            # 1. Clear the Victory Menu
-
             VictoryMenuBuilder.destroy(world)
-
-            # 2. Restart the adrenaline music!
             AudioManager.play_music("main_bgm")
-
-            # 3. Unpause the engine
             States.CURRENT_STATE = "PLAYING"
+            States.UI_DIRTY = True
 
 
 def get_level_up_options(player: dict) -> list:
@@ -143,8 +163,6 @@ def apply_upgrade(action_key: str, player: dict):
     # Update tracker
     stats.upgrades_owned[action_key] = stats.upgrades_owned.get(action_key, 0) + 1
     lvl = stats.upgrades_owned[action_key]
-
-    print(lvl)
 
     # FITNESS SURVIVAL (Passives)
     if action_key == "passives":
@@ -199,8 +217,8 @@ def apply_upgrade(action_key: str, player: dict):
             w_stats.projectile_count = 1
             w_stats.pierce = 1 + lvl
 
-            # Physical orbiting guns: Adds 1 extra sniper every 4 levels
-            new_count = 1 + (lvl // 4)
+            # Physical orbiting guns: Adds 1 extra sniper every 2 levels
+            new_count = 1 + (lvl // 2)
 
         else:
             new_count = 1
@@ -208,8 +226,6 @@ def apply_upgrade(action_key: str, player: dict):
         Factories.refresh_weapon(
             States.world, States.spatial_grid, States.PLAYER_ID, w_type, new_count
         )
-
-    print(f"🛠️ [MASTER UPGRADE] {action_key.upper()} reached Level {lvl}")
 
 
 def get_reward_description(key, next_lvl):

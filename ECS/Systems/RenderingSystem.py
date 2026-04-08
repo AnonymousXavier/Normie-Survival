@@ -15,6 +15,7 @@ import math
 
 from Globals import Misc
 from Globals import Settings
+from Globals.ParticleManager import ParticleManager
 
 DEBUG_FONT = pygame.font.SysFont("Arial", 12)
 
@@ -72,7 +73,6 @@ def draw_game_entities(
     # Draw Horizontal Lines
     for y in range(int(offset_y), cbh, tile_size):
         pygame.draw.line(render_surface, grid_color, (0, y), (cbw, y), 2)
-    # ------------------------------------
 
     for obj_id in sorted_entities:
         obj = world[obj_id]
@@ -83,57 +83,6 @@ def draw_game_entities(
                 obj_rect.top - camera_rect.top,
             )
             render_rect = pygame.Rect(render_pos, obj_rect.size)
-
-            # If this is the AOE entity itself (Orbital), give it a pulse
-            if AOEComponent in obj:
-                aoe = obj[AOEComponent]
-
-                t = aoe.timer / aoe.cooldown
-
-                # Cubic Easing
-                factor = (t) ** 3
-
-                # The absolute maximum size of the zone
-                max_radius_px = int(aoe.radius * Settings.SPRITE.WIDTH)
-
-                # The actual shrinking radius
-                current_radius = int(max_radius_px * factor)
-
-                # Static Surface Size
-                aoe_surf = pygame.Surface(
-                    (max_radius_px * 2, max_radius_px * 2), pygame.SRCALPHA
-                )
-                center_pt = (max_radius_px, max_radius_px)
-
-                # THE VISUALS
-                # Ghost Ring
-                pygame.draw.circle(
-                    aoe_surf, (255, 0, 0, 15), center_pt, max_radius_px, 1
-                )
-
-                if current_radius > 0:
-                    # Fade out the alpha as it shrinks
-                    alpha = int(factor * 150)
-
-                    # The Shrinking Core
-                    pygame.draw.circle(
-                        aoe_surf, (255, 50, 50, alpha), center_pt, current_radius
-                    )
-
-                    # The "Energy Rim" (A brighter, thicker ring on the edge of the shrinking core)
-                    rim_thickness = max(1, current_radius // 4)
-                    pygame.draw.circle(
-                        aoe_surf,
-                        (255, 150, 150, max(0, min(alpha + 50, 255))),
-                        center_pt,
-                        current_radius,
-                        rim_thickness,
-                    )
-
-                # Blit it perfectly centered on the player
-                render_surface.blit(
-                    aoe_surf, aoe_surf.get_rect(center=render_rect.center)
-                )
 
             # DRAW ENTITY SPRITE/RECT
             if obj[RenderComponent].sprite:
@@ -256,6 +205,14 @@ def draw_game_entities(
                 render_surface.blit(hit_sprite, render_rect)
                 # Decrease timer
                 obj[HealthComponent].hit_timer -= dt
+
+    ParticleManager.update_and_draw(
+        render_surface,
+        dt,
+        # Ensure these are PIXEL offsets!
+        cam_x=cam_boundary["left"] * Settings.CELLS.WIDTH,
+        cam_y=cam_boundary["top"] * Settings.CELLS.HEIGHT,
+    )
 
     return render_surface
 
