@@ -34,7 +34,7 @@ This game isn't just a massive `while` loop. It runs on a custom-built, highly d
 * **Entity-Component-System (ECS):** Pure separation of data and logic. Systems (Movement, Collision, Combat, Rendering) process data arrays independently, preventing spaghetti code and allowing for massive scalability.
 * **Flow-Field Pathfinding:** Instead of A^* calculating 200 individual paths per frame, the engine calculates a single, unified "gravity map" once per second, allowing the entire horde to navigate perfectly around the player at a fraction of the CPU cost.
 * **Hardware-Accelerated UI Caching:** To prevent Pixel Fill-Rate bottlenecks, 1080p UI panels are generated, scaled, and cached into memory via a "Dirty Flag" system, reducing UI rendering time from 40ms to 0.1ms per frame.
-* **Spatial Hashing:** Collision detection operates on a dynamic discrete grid system, dropping complexity from $O(N^2)$ to near $O(1)$, ensuring smooth frame rates even when the arena is completely flooded.
+* **Spatial Hashing:** Collision detection operates on a dynamic discrete grid system, dropping complexity from O(N^2) to near O(1), ensuring smooth frame rates even when the arena is completely flooded.
 
 ## 🚀 Installation & How to Play
 
