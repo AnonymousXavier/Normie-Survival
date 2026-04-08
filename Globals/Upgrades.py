@@ -2,30 +2,36 @@ import random
 
 UPGRADE_POOL = {
     "primary_weapon": {
-        "text": "Weapon Mastery",
+        "text": "Primary Weopon",
         "max_level": 40,
-    },  # Replaces "shotgun" and "sniper"
-    "defensives": {"text": "Defensive Systems", "max_level": 20},
-    "passives": {"text": "Physical Upgrades", "max_level": 20},
-    "pickup": {"text": "XP Magnet", "max_level": 10},
+    },
+    "defensives": {"text": "Defensive Upgrades", "max_level": 30},
+    "passives": {"text": "Personal Stats", "max_level": 30},
+    "pickup": {"text": "XP Magnet", "max_level": 15},
 }
 
 
 def get_reward_description(key, next_lvl):
     """Generates the 'Relative to level' text for the StatsButton."""
-    if key == "shotgun":
-        if next_lvl % 4 == 0:
-            return "+1 Gun, +Damage & Fire Rate"
-        return "+Damage & Fire Rate Boost"
+    if key == "primary_weapon":
+        # The big milestone upgrades
+        if next_lvl % 4 == 0 or next_lvl % 5 == 0:
+            return "EXTRA BARREL + DAMAGE & FIRE RATE"
+        return "FIRE RATE & LETHALITY BOOST"
+
     if key == "passives":
-        return "+Speed, +Max HP & +0.2 Regen"
-    if key == "defensives":
-        if next_lvl == 3:
-            return "Unlocks Energy Shield"
-        return "+AOE Radius & Damage"
-    if key == "pickup":
-        return f"+{0.8} Grid Cells Pickup Range"
-    return "Passive Stat Boost"
+        return "+SPEED, +MAX HP & HEALTH REGEN"
+
+    if key == "shield":
+        # New hit every 2 levels
+        if next_lvl % 2 == 0:
+            return "NEW ARMOR CHARGE & FASTER REPAIR"
+        return "FASTER ARMOR RECHARGE"
+
+    if key == "aoe":
+        return "WIDER ATTACK RADIUS & MORE DAMAGE"
+
+    return "PASSIVE STAT BOOST"
 
 
 def get_random_upgrades(owned_upgrades: dict) -> list:
