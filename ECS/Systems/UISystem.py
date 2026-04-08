@@ -11,9 +11,13 @@ from ECS.Components import (
     CollectorComponent,
 )
 from ECS.Builders.MainMenuBuilder import MainMenuBuilder
+from ECS.Builders.PauseMenuBuilder import PauseMenuBuilder
+from ECS.Builders.VictoryMenuBuilder import VictoryMenuBuilder
+
 from ECS import Factories
 from Globals import Upgrades
 from Globals import Settings
+from Globals.AudioManager import AudioManager
 
 # Initialize font
 pygame.font.init()
@@ -36,8 +40,26 @@ def process_events(world: dict, events: list):
             Settings.GAME_OPTIONS.SOUND = not Settings.GAME_OPTIONS.SOUND
             print(f"Sound is now: {'ON' if Settings.GAME_OPTIONS.SOUND else 'OFF'}")
 
-            # Rebuild the menu to instantly update the button text/color
-            from ECS.Builders.PauseMenuBuilder import PauseMenuBuilder
+            PauseMenuBuilder.destroy(world)
+            PauseMenuBuilder.build(world)
+
+        elif event.get("type") == "TOGGLE_SCREEN_SHAKE":
+            Settings.GAME_OPTIONS.SCREEN_SHAKE = not Settings.GAME_OPTIONS.SCREEN_SHAKE
+            print(
+                f"Screen Shake is now: {'ON' if Settings.GAME_OPTIONS.SCREEN_SHAKE else 'OFF'}"
+            )
+
+            PauseMenuBuilder.destroy(world)
+            PauseMenuBuilder.build(world)
+
+        elif event.get("type") == "TOGGLE_MUSIC":
+            Settings.GAME_OPTIONS.MUSIC = not Settings.GAME_OPTIONS.MUSIC
+            print(f"Music is now: {'ON' if Settings.GAME_OPTIONS.MUSIC else 'OFF'}")
+
+            if Settings.GAME_OPTIONS.MUSIC:
+                AudioManager.play_music("bg_music")
+            else:
+                AudioManager.stop_music()
 
             PauseMenuBuilder.destroy(world)
             PauseMenuBuilder.build(world)
@@ -70,6 +92,19 @@ def process_events(world: dict, events: list):
         elif event.get("type") == "QUIT_GAME":
             print("Game Exited via Victory Screen")
             States.GAME_RUNNING = False
+
+        elif event.get("type") == "CONTINUE_RUN":
+            print("Victory Lap Initiated! Entering Endless Mode...")
+
+            # 1. Clear the Victory Menu
+
+            VictoryMenuBuilder.destroy(world)
+
+            # 2. Restart the adrenaline music!
+            AudioManager.play_music("main_bgm")
+
+            # 3. Unpause the engine
+            States.CURRENT_STATE = "PLAYING"
 
 
 def get_level_up_options(player: dict) -> list:

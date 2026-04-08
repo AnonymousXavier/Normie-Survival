@@ -15,20 +15,21 @@ def process(world: dict, camera: dict, delta: float):
     base_y = targets_rect.centery
 
     # CAMERA SHAKE
-    if CameraShakeComponent in camera:
-        shake = camera[CameraShakeComponent]
-        if shake.intensity > 0:
-            # Generate a violent, random integer offset
-            offset_x = random.randint(-int(shake.intensity), int(shake.intensity))
-            offset_y = random.randint(-int(shake.intensity), int(shake.intensity))
+    if Settings.GAME_OPTIONS.SCREEN_SHAKE:
+        if CameraShakeComponent in camera:
+            shake = camera[CameraShakeComponent]
+            if shake.intensity > 0:
+                # Generate a violent, random integer offset
+                offset_x = random.randint(-int(shake.intensity), int(shake.intensity))
+                offset_y = random.randint(-int(shake.intensity), int(shake.intensity))
 
-            base_x += offset_x
-            base_y += offset_y
+                base_x += offset_x
+                base_y += offset_y
 
-            # Lose 150 intensity per second
-            shake.intensity -= 150.0 * delta
-            if shake.intensity < 0:
-                shake.intensity = 0.0
+                # Lose 150 intensity per second
+                shake.intensity -= 150.0 * delta
+                if shake.intensity < 0:
+                    shake.intensity = 0.0
 
     # Apply final position
     cam_rect.center = (base_x, base_y)

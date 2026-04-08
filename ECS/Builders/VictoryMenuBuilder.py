@@ -70,17 +70,37 @@ class VictoryMenuBuilder:
         }
         VictoryMenuBuilder._ui_ids.append(stats_id)
 
-        # QUIT BUTTON
-        btn_w, btn_h = 300, 60
+        # END GAME BUTTONS
+        btn_w, btn_h = 350, 60
+        btn_spacing = 20
+        start_y = h * 0.55
+
+        # --- THE ENDLESS BUTTON ---
+        cont_btn_id = States.NEXT_ENTITY_ID
+        States.NEXT_ENTITY_ID += 1
+        world[cont_btn_id] = {
+            UITag: UITag(),
+            UIButtonComponent: UIButtonComponent(
+                rect=pygame.Rect(cx - (btn_w // 2), start_y, btn_w, btn_h),
+                text="CONTINUE (ENDLESS)",
+                color=(50, 200, 50),  # Green for go!
+                action={"type": "CONTINUE_RUN"},
+            ),
+        }
+        VictoryMenuBuilder._ui_ids.append(cont_btn_id)
+
+        # --- THE EXIT BUTTON ---
         quit_btn_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1
         world[quit_btn_id] = {
             UITag: UITag(),
             UIButtonComponent: UIButtonComponent(
-                rect=pygame.Rect(cx - (btn_w // 2), h * 0.6, btn_w, btn_h),
-                text="EXIT GAME",
+                rect=pygame.Rect(
+                    cx - (btn_w // 2), start_y + btn_h + btn_spacing, btn_w, btn_h
+                ),
+                text="RETURN TO TERMINAL",
                 color=(200, 50, 50),
-                action={"type": "QUIT_GAME"},
+                action={"type": "RETURN_TO_MENU"},
             ),
         }
         VictoryMenuBuilder._ui_ids.append(quit_btn_id)

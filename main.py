@@ -44,12 +44,15 @@ dt = 0
 
 pygame.init()
 pygame.mixer.init()
+pygame.mixer.set_num_channels(64)
 AudioManager.load_assets()
 
 
 class Main:
     def __init__(self) -> None:
         MainMenuBuilder.build(States.world)
+
+        AudioManager.play_music("bg_music")
 
     def draw(self):
         Settings.window.fill(Settings.COLOURS.BLACK)
@@ -147,6 +150,7 @@ class Main:
                     States.CURRENT_STATE = "GAME_OVER"
 
                     GameOverMenuBuilder.build(States.world)
+                    AudioManager.play_sfx("player_death")
 
                     # Remove the component so this if-statement doesn't trigger again
                     del player[DeathTimerComponent]

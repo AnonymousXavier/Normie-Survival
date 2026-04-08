@@ -27,7 +27,7 @@ class AudioManager:
             cls.SFX["ui_click"] = pygame.mixer.Sound(
                 os.path.join(audio_dir, "click.wav")
             )
-            cls.SFX["hit_hurt"] = pygame.mixer.Sound(os.path.join(audio_dir, "hit.wav"))
+            cls.SFX["hit"] = pygame.mixer.Sound(os.path.join(audio_dir, "hit.wav"))
             cls.SFX["player_death"] = pygame.mixer.Sound(
                 os.path.join(audio_dir, "GameOver.wav")
             )
@@ -38,7 +38,7 @@ class AudioManager:
                 os.path.join(audio_dir, "level_up.wav")
             )
 
-            # Audio Mixing: Turn down the gem pickup so it doesn't drown out the guns!
+            # Audio Mixing: Turn down the gem pickup so it doesn't drown out the guns
             cls.SFX["gem_pickup"].set_volume(0.3)
             cls.SFX["shoot_shotgun"].set_volume(0.6)
             cls.SFX["shoot_sniper"].set_volume(0.7)
@@ -47,14 +47,18 @@ class AudioManager:
             print(f"⚠️ Audio File Missing: {e}")
 
         try:
-            cls.MUSIC_TRACKS["main_bgm"] = os.path.join(audio_dir, "bg_music.ogg")
+            cls.MUSIC_TRACKS["bg_music"] = os.path.join(audio_dir, "bg_music.ogg")
         except Exception as e:
             print(f"⚠️ Music File Error: {e}")
+
+        print("Audio Loaded successfully")
 
     @classmethod
     def play_sfx(cls, sound_name):
         if Settings.GAME_OPTIONS.SOUND and sound_name in cls.SFX:
             cls.SFX[sound_name].play()
+
+            print(f"Playing { sound_name}")
 
     @classmethod
     def play_music(cls, track_name):
@@ -62,6 +66,8 @@ class AudioManager:
             if not pygame.mixer.music.get_busy():
                 pygame.mixer.music.load(cls.MUSIC_TRACKS[track_name])
                 pygame.mixer.music.play(-1)  # Loop forever
+
+            print(f"Playing { track_name}")
         else:
             pygame.mixer.music.stop()
 

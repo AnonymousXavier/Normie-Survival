@@ -12,6 +12,7 @@ from ECS.Components import (
     CollectorComponent,
     AOEComponent,
     UIButtonComponent,
+    TextComponent,
 )
 
 
@@ -130,47 +131,186 @@ class PauseMenuBuilder:
         spawn_panel(f"ARSENAL (LVL {wep_lvl})", guns, (255, 150, 50), panel_h + padding)
         spawn_panel("UTILITY", utility, (50, 150, 255), (panel_h + padding) * 2)
 
-        # BUILD OPTIONS PANEL (Right Side)
+        # --- 3. GATHER ACTIVE UPGRADES ---
+        active_upgrades = {}
+        if p_stats and p_stats.upgrades_owned:
+            for key, level in p_stats.upgrades_owned.items():
+                # Format the internal key into a clean string
+                display_name = key.replace("_", " ").title()
+                active_upgrades[display_name] = f"Level {level}"
+
+        # --- 4. BUILD RIGHT SIDE PANELS ---
+        # Panel 1: System Options (Top Right)
+        opt_panel_h = int(panel_h * 1.3)
+        opt_rect = pygame.Rect(right_start_x, start_y, panel_w, opt_panel_h)
+
         opt_bg_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1
-
-        # Make one giant panel that spans the height of all 3 left panels
-        total_height = (panel_h * 3) + (padding * 2)
-        opt_rect = pygame.Rect(right_start_x, start_y, panel_w, total_height)
-
         world[opt_bg_id] = {
             UITag: UITag(),
             SpacialComponent: SpacialComponent(rect=opt_rect),
-            # Empty stats dict so it just draws the background/header!
             StatPanelComponent: StatPanelComponent(
                 title="SYSTEM OPTIONS", stats={}, theme_color=(200, 200, 200)
             ),
         }
         PauseMenuBuilder._ui_ids.append(opt_bg_id)
 
-        # SPAWN TOGGLE BUTTON
-        btn_y = start_y + 80
-        btn_w = 200
-        btn_h = 50
-
-        sound_btn_id = States.NEXT_ENTITY_ID
+        # Panel 2: Installed Upgrades (Bottom Right)
+        upg_bg_id = States.NEXT_ENTITY_ID
         States.NEXT_ENTITY_ID += 1
 
-        sound_text = "SOUND: ON" if Settings.GAME_OPTIONS.SOUND else "SOUND: OFF"
-        color = (50, 200, 50) if Settings.GAME_OPTIONS.SOUND else (200, 50, 50)
+        upg_start_y = start_y + opt_panel_h + padding
+        upg_panel_h = ((panel_h * 3) + (padding * 2)) - opt_panel_h - padding
+        upg_rect = pygame.Rect(right_start_x, upg_start_y, panel_w, upg_panel_h)
 
-        world[sound_btn_id] = {
+        world[upg_bg_id] = {
             UITag: UITag(),
-            UIButtonComponent: UIButtonComponent(
-                rect=pygame.Rect(
-                    right_start_x + (panel_w // 2) - (btn_w // 2), btn_y, btn_w, btn_h
-                ),
-                text=sound_text,
-                color=color,
-                action={"type": "TOGGLE_SOUND"},
+            SpacialComponent: SpacialComponent(rect=upg_rect),
+            # Feed the dictionary directly back into the panel for the clean Left/Right split!
+            StatPanelComponent: StatPanelComponent(
+                title="INSTALLED UPGRADES",
+                stats=active_upgrades,
+                theme_color=(255, 215, 0),
             ),
         }
-        PauseMenuBuilder._ui_ids.append(sound_btn_id)
+        PauseMenuBuilder._ui_ids.append(upg_bg_id)
+
+        # --- 4.5. OVERLAY PLACEHOLDER TEXT (Only if empty) ---
+        if not active_upgrades:
+            center_text_x = right_start_x + (panel_w // 2)
+            text_start_y = upg_start_y + 60
+
+            txt_id = States.NEXT_ENTITY_ID
+            States.NEXT_ENTITY_ID += 1
+            world[txt_id] = {
+                UITag: UITag(),
+                SpacialComponent: SpacialComponent(
+                    rect=pygame.Rect(center_text_x, text_start_y + 30, 0, 0)
+                ),
+                # Color set to 200,200,200 so it perfectly matches the standard UI font!
+                TextComponent: TextComponent(
+                    text="No Upgrades Installed", color=(200, 200, 200), is_header=False
+                ),
+            }
+            PauseMenuBuilder._ui_ids.append(txt_id)
+
+        # --- 5. SPAWN TOGGLE BUTTONS ---# --- 3. GATHER ACTIVE UPGRADES ---
+        active_upgrades = {}
+        if p_stats and p_stats.upgrades_owned:
+            for key, level in p_stats.upgrades_owned.items():
+                # Format the internal key into a clean string
+                display_name = key.replace("_", " ").title()
+                active_upgrades[display_name] = f"Level {level}"
+
+        # --- 4. BUILD RIGHT SIDE PANELS ---
+        # Panel 1: System Options (Top Right)
+        opt_panel_h = int(panel_h * 1.3)
+        opt_rect = pygame.Rect(right_start_x, start_y, panel_w, opt_panel_h)
+
+        opt_bg_id = States.NEXT_ENTITY_ID
+        States.NEXT_ENTITY_ID += 1
+        world[opt_bg_id] = {
+            UITag: UITag(),
+            SpacialComponent: SpacialComponent(rect=opt_rect),
+            StatPanelComponent: StatPanelComponent(
+                title="SYSTEM OPTIONS", stats={}, theme_color=(200, 200, 200)
+            ),
+        }
+        PauseMenuBuilder._ui_ids.append(opt_bg_id)
+
+        # Panel 2: Installed Upgrades (Bottom Right)
+        upg_bg_id = States.NEXT_ENTITY_ID
+        States.NEXT_ENTITY_ID += 1
+
+        upg_start_y = start_y + opt_panel_h + padding
+        upg_panel_h = ((panel_h * 3) + (padding * 2)) - opt_panel_h - padding
+        upg_rect = pygame.Rect(right_start_x, upg_start_y, panel_w, upg_panel_h)
+
+        world[upg_bg_id] = {
+            UITag: UITag(),
+            SpacialComponent: SpacialComponent(rect=upg_rect),
+            # Feed the dictionary directly back into the panel for the clean Left/Right split!
+            StatPanelComponent: StatPanelComponent(
+                title="INSTALLED UPGRADES",
+                stats=active_upgrades,
+                theme_color=(255, 215, 0),
+            ),
+        }
+        PauseMenuBuilder._ui_ids.append(upg_bg_id)
+
+        # --- 4.5. OVERLAY PLACEHOLDER TEXT (Only if empty) ---
+        if not active_upgrades:
+            center_text_x = right_start_x + (panel_w // 2)
+            text_start_y = upg_start_y + 60
+
+            txt_id = States.NEXT_ENTITY_ID
+            States.NEXT_ENTITY_ID += 1
+            world[txt_id] = {
+                UITag: UITag(),
+                SpacialComponent: SpacialComponent(
+                    rect=pygame.Rect(center_text_x, text_start_y + 30, 0, 0)
+                ),
+                # Color set to 200,200,200 so it perfectly matches the standard UI font!
+                TextComponent: TextComponent(
+                    text="No Upgrades Installed", color=(200, 200, 200), is_header=False
+                ),
+            }
+            PauseMenuBuilder._ui_ids.append(txt_id)
+
+        # --- 5. SPAWN TOGGLE BUTTONS ---
+        # (Leave your button logic exactly as it is down here!)
+        btn_w = int(panel_w * 0.85)
+        btn_h = 40
+        btn_spacing = 15
+        btn_x = right_start_x + (panel_w // 2) - (btn_w // 2)
+
+        # DYNAMIC MATH: Calculates the exact empty space in the panel and centers the 3 buttons
+        total_btn_h = (btn_h * 3) + (btn_spacing * 2)
+        header_allowance = 40
+        top_padding = ((opt_panel_h - header_allowance) - total_btn_h) // 2
+        base_btn_y = start_y + header_allowance + top_padding
+
+        def create_toggle(text, color, action_type, y_pos):
+            btn_id = States.NEXT_ENTITY_ID
+            States.NEXT_ENTITY_ID += 1
+            world[btn_id] = {
+                UITag: UITag(),
+                UIButtonComponent: UIButtonComponent(
+                    rect=pygame.Rect(btn_x, y_pos, btn_w, btn_h),
+                    text=text,
+                    color=color,
+                    action={"type": action_type},
+                ),
+            }
+            PauseMenuBuilder._ui_ids.append(btn_id)
+
+        # SOUND Toggle
+        sound_txt = "SOUND: ON" if Settings.GAME_OPTIONS.SOUND else "SOUND: OFF"
+        sound_col = (50, 200, 50) if Settings.GAME_OPTIONS.SOUND else (200, 50, 50)
+        create_toggle(sound_txt, sound_col, "TOGGLE_SOUND", base_btn_y)
+
+        # MUSIC Toggle
+        music_txt = "MUSIC: ON" if Settings.GAME_OPTIONS.MUSIC else "MUSIC: OFF"
+        music_col = (50, 200, 50) if Settings.GAME_OPTIONS.MUSIC else (200, 50, 50)
+        create_toggle(
+            music_txt, music_col, "TOGGLE_MUSIC", base_btn_y + btn_h + btn_spacing
+        )
+
+        # SCREEN SHAKE Toggle
+        shake_txt = (
+            "SCREEN SHAKE: ON"
+            if Settings.GAME_OPTIONS.SCREEN_SHAKE
+            else "SCREEN SHAKE: OFF"
+        )
+        shake_col = (
+            (50, 200, 50) if Settings.GAME_OPTIONS.SCREEN_SHAKE else (200, 50, 50)
+        )
+        create_toggle(
+            shake_txt,
+            shake_col,
+            "TOGGLE_SCREEN_SHAKE",
+            base_btn_y + (btn_h * 2) + (btn_spacing * 2),
+        )
 
     @staticmethod
     def destroy(world: dict):

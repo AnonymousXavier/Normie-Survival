@@ -63,8 +63,8 @@ class GAME:
 
 
 class GAME_OPTIONS:
-    SOUND = False
-    MUSIC = False
+    SOUND = True
+    MUSIC = True
     SCREEN_SHAKE = False
 
 

@@ -9,7 +9,6 @@ from ECS.Components import (
     SpacialComponent,
     PlayerStatsComponent,
     PlayerInputTag,
-    ArsenalComponent,
     HitboxComponent,
     DeathTimerComponent,
     AnimationComponent,
@@ -18,12 +17,15 @@ from ECS.Components import (
     MegaGemTag,
 )
 from ECS import Factories
+from Globals.AudioManager import AudioManager
 
 
 def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None):
     target = world.get(target_id)
     if not target:
         return
+
+    AudioManager.play_sfx("hit")
 
     # If the target is already dead, ignore this extra attack
     if HealthComponent in target and target[HealthComponent].hp <= 0:
