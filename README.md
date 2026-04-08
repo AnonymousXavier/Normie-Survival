@@ -59,9 +59,3 @@ This engine was heavily profiled using `cProfile`. If you are a developer lookin
 * **Developer:** Xavier
 * **Engine:** Pygame
 ```
-
-***
-
-Once you drop that in, your repository is going to look incredibly professional. It highlights the exact kind of logic a computer engineering mind brings to game dev. 
-
-When you are ready to wrap it all into a single `.exe` file to send to your friends or the folks at the SIWES office, let me know, and we will conquer that final packaging boss!
