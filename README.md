@@ -58,4 +58,3 @@ This engine was heavily profiled using `cProfile`. If you are a developer lookin
 ## 📜 Credits
 * **Developer:** Xavier
 * **Engine:** Pygame
-```
