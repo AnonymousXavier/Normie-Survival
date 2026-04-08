@@ -49,3 +49,28 @@ This game isn't just a massive `while` loop. It runs on a custom-built, highly d
 1. Clone the repository:
    ```bash
    git clone [https://github.com/AnonymousXavier/Normie-Survival.git](https://github.com/AnonymousXavier/Normie-Survival.git)
+   ```
+2. Install the required dependencies:
+   ```bash
+   pip install pygame
+   ```
+3. Run the engine:
+   ```bash
+   python main.py
+   ```
+
+## 🎮 Controls
+
+* **[W, A, S, D]** or **[Arrow Keys]** - Move your character.
+* **[Mouse]** - Aim your weapons.
+* **[Auto-Fire]** - Weapons fire automatically based on their individual cooldown stats.
+* **[ESC]** - Pause Game / Access Settings (Toggle Music, Sound, Screen Shake).
+
+## 📊 Profiling & Optimization Notes
+This engine was heavily profiled using `cProfile`. If you are a developer looking to fork or study the architecture:
+* Toggle the live, unobtrusive FPS counter in the top-left to monitor performance under heavy load.
+* Keep an eye on `ParticleManager.py` if altering the `lightning_bolts` life-cycle, as it relies on jagged mathematical interpolation.
+
+## 📜 Credits
+* **Developer:** Xavier
+* **Engine:** Pygame-CE
