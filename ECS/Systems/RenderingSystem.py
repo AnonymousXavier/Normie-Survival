@@ -1,4 +1,5 @@
 from ECS.Components import (
+    MegaGemTag,
     PlayerStatsComponent,
     SpacialComponent,
     RenderComponent,
@@ -87,9 +88,58 @@ def draw_game_entities(
             if obj[RenderComponent].sprite:
                 render_surface.blit(obj[RenderComponent].sprite, render_rect)
             else:
-                pygame.draw.rect(
-                    render_surface, obj[RenderComponent].color, render_rect
-                )
+                # --- THE MEGA GEM AURA ---
+                is_mega_gem = False
+                if ExperienceGemComponent in obj:
+                    # Assuming your Boss gem gives a massive amount of XP (e.g., > 100)
+                    if MegaGemTag in obj:
+                        is_mega_gem = True
+
+                        # 1. Calculate a pulsing radius using a sine wave
+                        pulse = abs(math.sin(pygame.time.get_ticks() * 0.005))
+                        aura_radius = int(obj_rect.width * (1.2 + pulse * 0.8))
+
+                        # 2. Draw a glowing golden circle
+                        aura_surf = pygame.Surface(
+                            (aura_radius * 2, aura_radius * 2), pygame.SRCALPHA
+                        )
+                        pygame.draw.circle(
+                            aura_surf,
+                            (255, 215, 0, 80 + int(pulse * 50)),
+                            (aura_radius, aura_radius),
+                            aura_radius,
+                        )
+
+                        # 3. Blit the aura perfectly centered behind the gem
+                        render_surface.blit(
+                            aura_surf, aura_surf.get_rect(center=render_rect.center)
+                        )
+
+                # DRAW ENTITY SPRITE/RECT
+                if obj[RenderComponent].sprite:
+                    working_sprite = obj[RenderComponent].sprite
+
+                    # If it's the Mega Gem, tint it Gold/Yellow!
+                    if is_mega_gem:
+                        working_sprite = working_sprite.copy()
+                        working_sprite.fill(
+                            (255, 200, 0, 255), special_flags=pygame.BLEND_RGBA_MULT
+                        )
+                        # Make it 50% bigger!
+                        new_size = (
+                            int(obj_rect.width * 1.5),
+                            int(obj_rect.height * 1.5),
+                        )
+                        working_sprite = pygame.transform.scale(
+                            working_sprite, new_size
+                        )
+                        render_rect = working_sprite.get_rect(center=render_rect.center)
+
+                    render_surface.blit(working_sprite, render_rect)
+                else:
+                    pygame.draw.rect(
+                        render_surface, obj[RenderComponent].color, render_rect
+                    )
 
             # SHIELD VISUAL
             if ShieldComponent in obj:

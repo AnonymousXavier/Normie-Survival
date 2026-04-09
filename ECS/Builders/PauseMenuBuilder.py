@@ -1,4 +1,3 @@
-# ECS/Builders/PauseMenuBuilder.py
 import pygame
 from Core import States
 from Globals import Settings

@@ -1,4 +1,4 @@
-import pygame
+import pygame, math
 from Core import States
 from ECS.Components import (
     UIButtonComponent,
@@ -8,6 +8,7 @@ from ECS.Components import (
     SpacialComponent,
     StatPanelComponent,
     UIImageComponent,
+    PlayerStatsComponent,
 )
 from Globals import Settings
 
@@ -132,7 +133,30 @@ def process(world: dict, window: pygame.Surface):
         window.blit(States.CACHED_UI_SURFACE, (offset_x, offset_y))
 
     if States.CURRENT_STATE == "PLAYING" and not States.IS_LEVELING_UP:
-        # 1. BOSS TIMER (Top Center)
+        # --- DEATH'S DOOR VIGNETTE ---
+        player = world.get(States.PLAYER_ID)
+        if player and PlayerStatsComponent in player:
+            stats = player[PlayerStatsComponent]
+
+            # Prevent DivisionByZero just in case
+            if stats.final_max_hp > 0:
+                hp_ratio = stats.current_hp / stats.final_max_hp
+
+                # If health drops below 25%, trigger the adrenaline panic!
+                if hp_ratio <= 0.25:
+                    # 1. Calculate a fast, aggressive heartbeat pulse (0.0 to 1.0)
+                    pulse = (math.sin(pygame.time.get_ticks() * 0.008) + 1) / 2
+
+                    # Map the pulse to an alpha transparency value.
+                    # Base is 0 (barely visible), Peak is 75 (deep red flash)
+                    alpha = int((pulse * 60))
+
+                    # Draw the blood flash directly over the physical window
+                    blood_screen = pygame.Surface((win_w, win_h), pygame.SRCALPHA)
+                    blood_screen.fill((200, 0, 0, alpha))
+                    window.blit(blood_screen, (0, 0))
+
+        # BOSS TIMER (Top Center)
         minutes, seconds = int(States.BOSS_TIMER // 60), int(States.BOSS_TIMER % 60)
         timer_text = f"BOSS IN: {minutes:02}:{seconds:02}"
 

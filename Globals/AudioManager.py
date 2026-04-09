@@ -1,4 +1,5 @@
 import pygame
+import random
 import os
 from Globals import Settings
 
@@ -55,6 +56,7 @@ class AudioManager:
     def play_sfx(cls, sound_name):
         if Settings.GAME_OPTIONS.SOUND and sound_name in cls.SFX:
             cls.SFX[sound_name].play()
+            cls.SFX[sound_name].set_volume(random.uniform(0.6, 1.0))
 
     @classmethod
     def play_music(cls, track_name):

@@ -1,4 +1,3 @@
-# ECS/Systems/CollectionSystem.py
 from Core import States
 from ECS.Components import (
     ExperienceGemComponent,

@@ -1,4 +1,4 @@
-# ECS/Systems/CombatSystem.py
+import pygame
 from random import randint
 from Core import States
 from Globals import Enums, Misc, Settings
@@ -85,7 +85,7 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
                     # Now delete the enemy
                     Misc.remove_entity_from_grid(e_id, g_pos, spatial_grid)
                     del world[e_id]
-
+            pygame.time.wait(150)
             # Spawn Mega Gem exactly where the boss was
             mega_gem_id = Factories.spawn_gem(
                 world,
