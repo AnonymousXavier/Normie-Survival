@@ -202,13 +202,12 @@ def apply_upgrade(action_key: str, player: dict):
         if DashComponent in player:
             player[DashComponent].cooldown = (
                 Settings.COMPONENTS_BASE_VALUES.DASH.cooldown
-                + (lvl / Settings.UPGRADES_MAX_LEVELS.QOL)
+                - (lvl / Settings.UPGRADES_MAX_LEVELS.QOL)
                 * Settings.COMPONENTS_BASE_VALUES.DASH.duration
             )
-            player[
-                DashComponent
-            ].duration = Settings.COMPONENTS_BASE_VALUES.DASH.duration + (
-                lvl / Settings.UPGRADES_MAX_LEVELS.QOL
+            player[DashComponent].duration = (
+                Settings.COMPONENTS_BASE_VALUES.DASH.duration
+                + (lvl / Settings.UPGRADES_MAX_LEVELS.QOL) * 0.3
             )
 
     # PRIMARY WEAPON MASTERY

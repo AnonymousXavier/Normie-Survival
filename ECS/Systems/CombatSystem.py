@@ -49,18 +49,31 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
         stats = target[PlayerStatsComponent]
         stats.current_hp -= amount
         is_dead = stats.current_hp <= 0
+
+        # --- FREEZE THE ENGINE FOR A HEAVY HIT ---
+        States.HIT_STOP_TIMER = Settings.GAME.GAME_DELAY_ON_PLAYER_HIT / 1000.0
+
     elif HealthComponent in target:
         health = target[HealthComponent]
         health.hp -= amount
         is_dead = health.hp <= 0
 
+        # --- FREEZE THE ENGINE FOR BOSS HITS ---
+        if BossTag in target:
+            States.HIT_STOP_TIMER = Settings.GAME.GAME_DELAY_ON_BOSS_HIT / 1000.0
+
     target[HealthComponent].hit_timer = 0.1
+
     # DEATH
     if is_dead:
         States.KILLS_COUNT += 1
         enemy = target[SpacialComponent].rect
         ParticleManager.emit_sparks(enemy.x, enemy.y, color=(200, 50, 50), count=15)
+
         if BossTag in target:
+            # --- MASSIVE FREEZE ON BOSS KILL ---
+            States.HIT_STOP_TIMER = Settings.GAME.GAME_DELAY_ON_BOSS_KILLED / 1000.0
+
             for e_id, e_obj in list(world.items()):
                 if EnemyTag in e_obj and BossTag not in e_obj:
                     g_pos = e_obj[SpacialComponent].grid_pos
@@ -134,7 +147,7 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
 
         # Spawn the damage number
         if SpacialComponent in target:
-            rect = world[target_id][SpacialComponent].rect
+            rect = target[SpacialComponent].rect
             ParticleManager.emit_damage_text(rect.centerx, rect.top, amount)
 
 

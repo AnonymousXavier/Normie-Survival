@@ -73,17 +73,11 @@ def process(world: dict, spatial_grid: dict, dt: float):
                         Misc.remove_entity_from_grid(gem_id, cell, spatial_grid)
                         del world[gem_id]
 
-                        # --- NEW MULTI-LEVEL UP & AUDIO LOGIC ---
                         if States.CURRENT_STATE not in ["VICTORY", "GAME_OVER"]:
                             leveled_up_this_frame = False
 
                             while p_stats.xp >= p_stats.xp_to_next_level:
-                                p_stats.xp -= p_stats.xp_to_next_level
-                                p_stats.level += 1
-                                p_stats.xp_to_next_level = int(
-                                    p_stats.xp_to_next_level * 1.25
-                                )
-                                leveled_up_this_frame = True
+                                level_up(p_stats)
 
                             if leveled_up_this_frame:
                                 AudioManager.play_sfx("level_up")
@@ -124,7 +118,7 @@ def process(world: dict, spatial_grid: dict, dt: float):
 def level_up(stats):
     stats.level += 1
     stats.xp -= stats.xp_to_next_level  # Keep rollover XP
-    stats.xp_to_next_level = int(stats.xp_to_next_level * 1.25)
+    stats.xp_to_next_level = int(stats.xp_to_next_level * 2)
 
     # Get options and build UI
     options = Upgrades.get_random_upgrades(stats.upgrades_owned)
