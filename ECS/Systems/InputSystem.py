@@ -67,7 +67,7 @@ def process(world: dict, global_events: list, dt: float):
                         PauseMenuBuilder.destroy(world)
                 States.UI_DIRTY = True
 
-            # --- THE ACTIVE DODGE (SPACEBAR) ---
+            # DASH
             if event.key in Settings.CONTROLS.DASH:
                 if States.PLAYER_ID in world:
                     player = world[States.PLAYER_ID]

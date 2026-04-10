@@ -84,7 +84,7 @@ class MainMenuBuilder:
         }
         MainMenuBuilder._ui_ids.append(title_id)
 
-        # --- 4. LEFT PANEL: MISSION LOG (Compressed & Vertical) ---
+        # LEFT PANEL: MISSION LOG (Compressed & Vertical)
         save_data = SaveManager.load_data()
         log_stats = {}
         log_color = (200, 200, 200)
