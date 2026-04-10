@@ -3,7 +3,7 @@ import pygame
 from ECS.Builders.PauseMenuBuilder import PauseMenuBuilder
 from ECS.Systems import ClickingSystem
 from Core import States
-from ECS.Components import StunComponent
+from ECS.Components import StunComponent, HealthComponent, DashComponent
 from Globals import Enums, Settings
 
 
@@ -53,17 +53,35 @@ def process(world: dict, global_events: list, dt: float):
             if event.key == pygame.K_F11:
                 pygame.display.toggle_fullscreen()
                 States.UI_DIRTY = True
+
             if event.key == pygame.K_ESCAPE:
                 # Toggle the Pause State!
-                if not States.IS_LEVELING_UP:  # Don't pause while leveling up
+                if not States.IS_LEVELING_UP:
                     States.IS_PAUSED = not States.IS_PAUSED
-
                     if States.IS_PAUSED:
-                        PauseMenuBuilder.build(world)  # Call builder
+                        PauseMenuBuilder.build(world)
                     else:
-                        PauseMenuBuilder.destroy(world)  # Close the menu
-
+                        PauseMenuBuilder.destroy(world)
                 States.UI_DIRTY = True
+
+            # --- THE ACTIVE DODGE (SPACEBAR) ---
+            if event.key in Settings.CONTROLS.DASH:
+                if States.PLAYER_ID in world:
+                    player = world[States.PLAYER_ID]
+                    if DashComponent in player:
+                        dash = player[DashComponent]
+                        # Only trigger if not on cooldown and not already dashing
+                        if dash.cooldown_timer <= 0 and not dash.is_dashing:
+                            dash.is_dashing = True
+                            dash.timer = dash.duration
+
+                            # Just read the pre-calculated cooldown!
+                            dash.cooldown_timer = dash.cooldown
+
+                            # Instantly grant the Invincibility Frames!
+                            if HealthComponent in player:
+                                player[HealthComponent].inv_timer = dash.duration
+
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             # Broadcast a clean, translated click event for the ClickingSystem!
             global_events.append(

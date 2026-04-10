@@ -139,58 +139,63 @@ class Main:
 
         # --- PLAYING STATE ---
         if not States.IS_LEVELING_UP and not States.IS_PAUSED:
-            States.GAME_TIME += dt
-            States.BOSS_TIMER -= dt
+            # THE HIT-STOP CHECK
+            if States.HIT_STOP_TIMER > 0:
+                States.HIT_STOP_TIMER -= dt  # Tick down the freeze timer
+            else:
+                # NORMAL GAMEPLAY UPDATES
+                States.GAME_TIME += dt
+                States.BOSS_TIMER -= dt
 
-            AimingSystem.process(States.world, States.spatial_grid, States.camera)
-            AINavigationSystem.process(States.world, events)
-            BossAISystem.process(States.world, States.spatial_grid, dt)
+                AimingSystem.process(States.world, States.spatial_grid, States.camera)
+                AINavigationSystem.process(States.world, events)
+                BossAISystem.process(States.world, States.spatial_grid, dt)
 
-            MovementSystem.process(States.world, States.spatial_grid, events, dt)
-            AnimationStateSystem.process(States.world)
-            AnimationSystem.process(States.world, dt)
-            HitboxSystem.process(States.world)
-            RegenSystem.process(States.world, dt)
+                MovementSystem.process(States.world, States.spatial_grid, events, dt)
+                AnimationStateSystem.process(States.world)
+                AnimationSystem.process(States.world, dt)
+                HitboxSystem.process(States.world)
+                RegenSystem.process(States.world, dt)
 
-            ProjectileSystem.process(
-                States.world, States.spatial_grid, States.camera, dt
-            )
-            WeaponSystem.process(States.world, States.spatial_grid, dt)
-            AOESystem.process(States.world, States.spatial_grid, dt)
-            CollectionSystem.process(States.world, States.spatial_grid, dt)
-
-            DamageSystem.process(States.world, States.spatial_grid, dt)
-            CollisionSystem.process(States.world, States.spatial_grid)
-            PickUpSystem.process(States.world, States.spatial_grid)
-
-            EnemySpawner.process(States.world, States.spatial_grid, dt)
-            OrbitalSystem.process(States.world, States.spatial_grid, dt)
-
-            CameraSystem.process(States.world, States.camera, dt)
-            if frame >= (Settings.UPDATE.FPS // Settings.UPDATE.FIELD_UPDATES_PER_SEC):
-                FlowFieldSystem.flow_field = FlowFieldSystem.create_flow_field(
-                    States.world[States.PLAYER_ID][SpacialComponent].grid_pos
+                ProjectileSystem.process(
+                    States.world, States.spatial_grid, States.camera, dt
                 )
-                frame = 0
+                WeaponSystem.process(States.world, States.spatial_grid, dt)
+                AOESystem.process(States.world, States.spatial_grid, dt)
+                CollectionSystem.process(States.world, States.spatial_grid, dt)
 
-            # --- DEATH COUNTDOWN ---
-            player = States.world.get(States.PLAYER_ID)
-            if player and DeathTimerComponent in player:
-                player[DeathTimerComponent].time_left -= dt
+                DamageSystem.process(States.world, States.spatial_grid, dt)
+                CollisionSystem.process(States.world, States.spatial_grid)
+                PickUpSystem.process(States.world, States.spatial_grid)
 
-                if player[DeathTimerComponent].time_left <= 0:
-                    States.CURRENT_STATE = "GAME_OVER"
+                EnemySpawner.process(States.world, States.spatial_grid, dt)
+                OrbitalSystem.process(States.world, States.spatial_grid, dt)
 
-                    GameOverMenuBuilder.build(States.world)
-                    AudioManager.play_sfx("player_death")
+                CameraSystem.process(States.world, States.camera, dt)
+                if frame >= (
+                    Settings.UPDATE.FPS // Settings.UPDATE.FIELD_UPDATES_PER_SEC
+                ):
+                    FlowFieldSystem.flow_field = FlowFieldSystem.create_flow_field(
+                        States.world[States.PLAYER_ID][SpacialComponent].grid_pos
+                    )
+                    frame = 0
 
-                    # Remove the component so this if-statement doesn't trigger again
-                    del player[DeathTimerComponent]
+                # --- DEATH COUNTDOWN ---
+                player = States.world.get(States.PLAYER_ID)
+                if player and DeathTimerComponent in player:
+                    player[DeathTimerComponent].time_left -= dt
 
-            if States.BOSS_TIMER <= 0:
-                self.trigger_boss_spawn()
-                States.BOSS_TIMER = Settings.GAME.BOSS_SPAWN_TIME_DELAY
+                    if player[DeathTimerComponent].time_left <= 0:
+                        States.CURRENT_STATE = "GAME_OVER"
 
+                        GameOverMenuBuilder.build(States.world)
+                        AudioManager.play_sfx("player_death")
+
+                        del player[DeathTimerComponent]
+
+                if States.BOSS_TIMER <= 0:
+                    self.trigger_boss_spawn()
+                    States.BOSS_TIMER = Settings.GAME.BOSS_SPAWN_TIME_DELAY
         UISystem.process_events(States.world, events)
 
         # Moved inside so it doesn't crash trying to find the camera during the menu!

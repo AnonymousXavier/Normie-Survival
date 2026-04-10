@@ -12,6 +12,7 @@ from ECS.Components import (
     AOEComponent,
     UIButtonComponent,
     TextComponent,
+    DashComponent,
 )
 
 
@@ -31,6 +32,7 @@ class PauseMenuBuilder:
         shield = player.get(ShieldComponent)
         collector = player.get(CollectorComponent)
         aoe = player.get(AOEComponent)
+        dash = player.get(DashComponent)
 
         # POPULATE VITALS
         vitals = {}
@@ -83,6 +85,10 @@ class PauseMenuBuilder:
 
         if collector:
             utility["Magnet"] = f"{collector.range:.1f} Grids"
+
+        if dash:
+            utility["Dash CoolDown"] = f"{dash.cooldown:.1f}s"  # <--- ADD THIS
+            utility["Dash Duration"] = f"{dash.duration:.1f}s"  # <--- ADD THIS
 
         # Add placeholders if they haven't unlocked anything in Utility yet
         if not utility:

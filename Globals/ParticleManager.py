@@ -1,11 +1,15 @@
 import pygame
 import random
 
+DAMAGE_FONT = pygame.font.SysFont("Arial", 10, bold=True)
+
 
 class ParticleManager:
     # Each particle: [x, y, vx, vy, lifetime, max_lifetime, color, size]
     particles = []
     lightning_bolts = []
+    # format: [x, exact_y, text_surface, alpha, timer]
+    damage_texts = []
 
     @classmethod
     def emit_sparks(cls, x, y, color=(255, 200, 50), count=8):
@@ -16,6 +20,14 @@ class ParticleManager:
             lifetime = random.uniform(0.15, 0.4)
             size = random.randint(2, 5)
             cls.particles.append([x, y, vx, vy, lifetime, lifetime, color, size])
+
+    @classmethod
+    def emit_damage_text(cls, x, y, damage_amount):
+        color = (225, 215, 0)
+        text_surf = DAMAGE_FONT.render(str(damage_amount), True, color)
+
+        # Store: [world_x, float_world_y, surface, alpha, time_left]
+        cls.damage_texts.append([x, float(y), text_surf, 255, 0.25])
 
     @classmethod
     def emit_lightning(cls, start_pos, end_pos):
@@ -95,6 +107,27 @@ class ParticleManager:
 
                 # Line gets physically thinner as it fades
                 pygame.draw.line(window, color, p1, p2, width=max(1, bolt["life"]))
+
+        # FLOATING TEXT LOGIC
+        for txt in cls.damage_texts[:]:
+            # format: [x, exact_y, text_surface, alpha, timer]
+            txt[1] -= 90 * dt  # Float upwards at 90 pixels per second
+            txt[4] -= dt  # Decrease lifespan timer
+
+            if txt[4] <= 0:
+                cls.damage_texts.remove(txt)
+            else:
+                # Calculate alpha based on remaining time
+                txt[3] = int((txt[4] / 0.25) * 255)
+
+                # Apply alpha and draw
+                surf = txt[2].copy()
+                surf.set_alpha(txt[3])
+
+                # Center the text over the entity using the camera offset
+                render_x = txt[0] - cam_x - (surf.get_width() // 2)
+                render_y = txt[1] - cam_y
+                window.blit(surf, (render_x, render_y))
 
     @classmethod
     def clear(cls):

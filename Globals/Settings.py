@@ -64,6 +64,17 @@ class GAME:
 
     SHIELD_RADIUS = 12
 
+    GAME_DELAY_ON_PLAYER_HIT = 100
+    GAME_DELAY_ON_BOSS_KILLED = 150
+    GAME_DELAY_ON_BOSS_HIT = 75
+
+
+class UPGRADES_MAX_LEVELS:
+    WEAPON = 40
+    DEFENSE = 30
+    QOL = 15
+    PASSIVES = 30
+
 
 class GAME_OPTIONS:
     SOUND = True
@@ -110,7 +121,17 @@ class CONTROLS:
     DOWN = (pygame.K_s, pygame.K_DOWN)
     LEFT = (pygame.K_a, pygame.K_LEFT)
     RIGHT = (pygame.K_d, pygame.K_RIGHT)
+    DASH = (pygame.K_SPACE, pygame.K_LSHIFT)
 
 
 window = pygame.display.set_mode(WINDOW.SIZE, pygame.RESIZABLE)
 pygame.display.set_caption(WINDOW.TITLE.capitalize())
+
+
+class COMPONENTS_BASE_VALUES:
+    class PICKUP:
+        distance = 3.0
+
+    class DASH:
+        cooldown = 10
+        duration = 0.2

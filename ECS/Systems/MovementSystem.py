@@ -1,10 +1,13 @@
+from Core import States
 from ECS.Components import (
     EnemyTag,
     PlayerInputTag,
     SpacialComponent,
     VelocityComponent,
     FacingDirectionComponent,
+    DashComponent,
 )
+from Globals.ParticleManager import ParticleManager
 from Globals import Enums, Settings, Misc
 
 frame = 0
@@ -12,6 +15,37 @@ frame = 0
 
 def process(world: dict, spatial_grid: dict, global_event: list, delta: float):
     global frame
+
+    # --- DASH TIMERS & GHOST TRAIL ---
+    if States.PLAYER_ID in world and DashComponent in world[States.PLAYER_ID]:
+        dash = world[States.PLAYER_ID][DashComponent]
+        player_rect = world[States.PLAYER_ID][SpacialComponent].rect
+
+        # 1. Tick down the cooldown
+        if dash.cooldown_timer > 0:
+            dash.cooldown_timer -= delta
+            if dash.cooldown_timer <= 0:
+                dash.flash_timer = 0.15
+
+        # 2. Tick down the flash
+        if dash.flash_timer > 0:
+            dash.flash_timer -= delta
+
+        # 3. Tick down the active dash window & Drop Ghosts!
+        if dash.is_dashing:
+            dash.timer -= delta
+
+            # Record the current exact pixel coordinate and set Alpha to 255 (Solid)
+            dash.ghosts.append([player_rect.x, player_rect.y, 255.0])
+
+            if dash.timer <= 0:
+                dash.is_dashing = False
+
+        # 4. Fade out the ghost trail smoothly (Runs constantly so ghosts fade after dash ends)
+        for ghost in dash.ghosts[:]:
+            ghost[2] -= 800 * delta  # Subtract alpha based on frame time
+            if ghost[2] <= 0:
+                dash.ghosts.remove(ghost)
 
     if frame % (Settings.UPDATE.FPS / Settings.UPDATE.INPUT_CHECKS_PER_SEC) == 0:
         for event in global_event:
@@ -85,8 +119,14 @@ def move_entity_on_spatial_grid(
 
 def get_movement_speed(obj: dict):
     speed = 0
+    dash_mult = 1.0
+
+    # Check if the entity is currently dashing
+    if DashComponent in obj and obj[DashComponent].is_dashing:
+        dash_mult = obj[DashComponent].multiplier
+
     if PlayerInputTag in obj:
-        speed = Settings.GAME.PLAYER_SPEED
+        speed = Settings.GAME.PLAYER_SPEED * dash_mult
     elif EnemyTag in obj:
         speed = Settings.GAME.ENEMY_SPEED
 

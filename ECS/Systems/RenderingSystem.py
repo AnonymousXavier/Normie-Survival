@@ -5,9 +5,9 @@ from ECS.Components import (
     RenderComponent,
     HealthComponent,
     ShieldComponent,
-    AOEComponent,
     TrailComponent,
     ExperienceGemComponent,
+    DashComponent,
 )
 from ECS.Systems import CameraSystem
 
@@ -84,17 +84,66 @@ def draw_game_entities(
             )
             render_rect = pygame.Rect(render_pos, obj_rect.size)
 
+            # ==========================================
+            # 1. UNDERLAYS (Shadows, Dash Ghosts)
+            # ==========================================
+
+            # --- DASH GHOST TRAIL ---
+            if (
+                DashComponent in obj
+                and RenderComponent in obj
+                and obj[RenderComponent].sprite
+            ):
+                dash = obj[DashComponent]
+                if dash.ghosts:
+                    # Create a solid white mask of the player, and tint it bright Cyan!
+                    ghost_sprite = get_hit_surface(obj[RenderComponent].sprite)
+                    ghost_sprite.fill(
+                        (0, 255, 255, 255), special_flags=pygame.BLEND_RGBA_MULT
+                    )
+
+                    for ghost in dash.ghosts:
+                        ghost_x, ghost_y, alpha = ghost
+                        # Translate world coords to camera coords
+                        render_ghost_x = ghost_x - camera_rect.left
+                        render_ghost_y = ghost_y - camera_rect.top
+
+                        # Apply the fading transparency and draw
+                        temp_sprite = ghost_sprite.copy()
+                        temp_sprite.set_alpha(int(alpha))
+                        render_surface.blit(
+                            temp_sprite, (render_ghost_x, render_ghost_y)
+                        )
+
+            # --- THE DROP SHADOW ---
+            # Draw shadows to anchor characters and gems to the floor
+            if (
+                HealthComponent in obj
+                or PlayerStatsComponent in obj
+                or ExperienceGemComponent in obj
+            ):
+                shadow_w = int(obj_rect.width * 0.7)
+                shadow_h = int(obj_rect.width * 0.3)
+
+                # Center the shadow at the bottom of the bounding box
+                shadow_x = render_pos[0] + (obj_rect.width - shadow_w) // 2
+                shadow_y = render_pos[1] + obj_rect.height - (shadow_h // 2)
+
+                # Draw a dark ellipse (using a very dark color to match the floor)
+                pygame.draw.ellipse(
+                    render_surface,
+                    (45, 45, 45),
+                    (shadow_x, shadow_y, shadow_w, shadow_h),
+                )
+
             # DRAW ENTITY SPRITE/RECT
             if obj[RenderComponent].sprite:
                 render_surface.blit(obj[RenderComponent].sprite, render_rect)
             else:
                 # --- THE MEGA GEM AURA ---
-                is_mega_gem = False
                 if ExperienceGemComponent in obj:
                     # Assuming your Boss gem gives a massive amount of XP (e.g., > 100)
                     if MegaGemTag in obj:
-                        is_mega_gem = True
-
                         # 1. Calculate a pulsing radius using a sine wave
                         pulse = abs(math.sin(pygame.time.get_ticks() * 0.005))
                         aura_radius = int(obj_rect.width * (1.2 + pulse * 0.8))
@@ -114,32 +163,14 @@ def draw_game_entities(
                         render_surface.blit(
                             aura_surf, aura_surf.get_rect(center=render_rect.center)
                         )
-
-                # DRAW ENTITY SPRITE/RECT
-                if obj[RenderComponent].sprite:
-                    working_sprite = obj[RenderComponent].sprite
-
-                    # If it's the Mega Gem, tint it Gold/Yellow!
-                    if is_mega_gem:
-                        working_sprite = working_sprite.copy()
-                        working_sprite.fill(
-                            (255, 200, 0, 255), special_flags=pygame.BLEND_RGBA_MULT
-                        )
-                        # Make it 50% bigger!
-                        new_size = (
-                            int(obj_rect.width * 1.5),
-                            int(obj_rect.height * 1.5),
-                        )
-                        working_sprite = pygame.transform.scale(
-                            working_sprite, new_size
-                        )
-                        render_rect = working_sprite.get_rect(center=render_rect.center)
-
-                    render_surface.blit(working_sprite, render_rect)
                 else:
                     pygame.draw.rect(
                         render_surface, obj[RenderComponent].color, render_rect
                     )
+
+            # ==========================================
+            # OVERLAYS (Shields, HP, Trails, Flashes)
+            # ==========================================
 
             # SHIELD VISUAL
             if ShieldComponent in obj:
@@ -196,24 +227,51 @@ def draw_game_entities(
                     render_surface, (0, 200, 0), (bx, by, bar_w * hp_perc, bar_h)
                 )  # Foreground
 
-                # XP BAR
+                # --- PLAYER SPECIFIC BARS (HP -> XP -> DASH) ---
                 if PlayerStatsComponent in obj:
                     stats = obj[PlayerStatsComponent]
+
+                    # 1. XP BAR
                     xp_perc = max(0, min(1, stats.xp / stats.xp_to_next_level))
-
-                    # Position it above the Health Bar
                     xp_by = by - bar_h
-
-                    # Background
                     pygame.draw.rect(
                         render_surface, (20, 20, 0), (bx, xp_by, bar_w, bar_h)
                     )
-                    # Foreground
                     pygame.draw.rect(
                         render_surface,
                         (255, 200, 0),
                         (bx, xp_by, bar_w * xp_perc, bar_h),
                     )
+
+                    # 2. DASH BAR
+                    if DashComponent in obj:
+                        dash = obj[DashComponent]
+                        dash_by = xp_by - bar_h
+
+                        # Calculate progress (0.0 to 1.0)
+                        dash_perc = 1.0 - (dash.cooldown_timer / dash.cooldown)
+
+                        # Background
+                        pygame.draw.rect(
+                            render_surface, (0, 30, 40), (bx, dash_by, bar_w, bar_h)
+                        )
+
+                        # Foreground (Cyan)
+                        bar_color = (0, 255, 255)
+
+                        # --- THE FLASH LOGIC ---
+                        if dash.cooldown_timer <= 0:
+                            # Pulse white when ready
+                            pulse = abs(math.sin(pygame.time.get_ticks() * 0.01))
+                            if pulse > 0.5:
+                                bar_color = (200, 255, 255)  # Light glow
+
+                        pygame.draw.rect(
+                            render_surface,
+                            bar_color,
+                            (bx, dash_by, bar_w * dash_perc, bar_h),
+                        )
+
             # XP GEM TRAILS
             if TrailComponent in obj and ExperienceGemComponent in obj:
                 trail = obj[TrailComponent]
@@ -247,13 +305,20 @@ def draw_game_entities(
                             render_surface, (0, 255, 255), cam_start, cam_end, thickness
                         )
 
-            # Hit Flash
+            # Hit Flash (Red/White for taking damage)
             if HealthComponent in obj and obj[HealthComponent].hit_timer > 0:
-                # Use the hit-flash surface instead of the regular sprite
                 hit_sprite = get_hit_surface(obj[RenderComponent].sprite)
                 render_surface.blit(hit_sprite, render_rect)
-                # Decrease timer
                 obj[HealthComponent].hit_timer -= dt
+
+            # Dash Ready Flash (Cyan Electrical Glow)
+            if DashComponent in obj and obj[DashComponent].flash_timer > 0:
+                ready_sprite = get_hit_surface(obj[RenderComponent].sprite)
+                # Tint the pure white mask into a bright Cyan color
+                ready_sprite.fill(
+                    (0, 255, 255, 255), special_flags=pygame.BLEND_RGBA_MULT
+                )
+                render_surface.blit(ready_sprite, render_rect)
 
     ParticleManager.update_and_draw(
         render_surface,

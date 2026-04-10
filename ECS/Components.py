@@ -5,6 +5,18 @@ import pygame
 from Globals import Settings
 
 
+@dataclass(kw_only=True, slots=True)
+class DashComponent:
+    is_dashing: bool = False
+    duration: float = 0.20
+    timer: float = 0.0
+    cooldown: float = 10.0
+    cooldown_timer: float = 0.0
+    multiplier: float = 4.0
+    flash_timer: float = 0.0
+    ghosts: list = field(default_factory=list)
+
+
 @dataclass
 class CameraShakeComponent:
     intensity: float = 0.0
@@ -153,7 +165,9 @@ class ExperienceGemComponent:
 
 @dataclass(kw_only=True, slots=True)
 class CollectorComponent:
-    range: float = 3.0  # Pickup radius in grid cells
+    range: float = (
+        Settings.COMPONENTS_BASE_VALUES.PICKUP.distance
+    )  # Pickup radius in grid cells
 
 
 @dataclass(kw_only=True)

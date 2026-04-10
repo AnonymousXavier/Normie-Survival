@@ -9,6 +9,7 @@ from ECS.Components import (
     AOEComponent,
     ArsenalComponent,
     CollectorComponent,
+    DashComponent,
 )
 from ECS.Builders.MainMenuBuilder import MainMenuBuilder
 from ECS.Builders.PauseMenuBuilder import PauseMenuBuilder
@@ -192,10 +193,23 @@ def apply_upgrade(action_key: str, player: dict):
             s.max_hits = 1 + (lvl // 3)
             s.current_hits = s.max_hits
 
-    # MAGNETISM (Pickup)
+    # QUALITY OF LIFE & MAGNETISM (Pickup)
     elif action_key == "pickup":
         if CollectorComponent in player:
             player[CollectorComponent].range = 2.0 + (lvl * 0.8)
+
+        # Recalculate the Dash Cooldown exactly once per level up!
+        if DashComponent in player:
+            player[DashComponent].cooldown = (
+                Settings.COMPONENTS_BASE_VALUES.DASH.cooldown
+                + (lvl / Settings.UPGRADES_MAX_LEVELS.QOL)
+                * Settings.COMPONENTS_BASE_VALUES.DASH.duration
+            )
+            player[
+                DashComponent
+            ].duration = Settings.COMPONENTS_BASE_VALUES.DASH.duration + (
+                lvl / Settings.UPGRADES_MAX_LEVELS.QOL
+            )
 
     # PRIMARY WEAPON MASTERY
     elif action_key == "primary_weapon":

@@ -9,6 +9,7 @@ from ECS.Components import (
     BossTag,
     CameraShakeComponent,
     DamageComponent,
+    DashComponent,
     EnemyTag,
     FacingDirectionComponent,
     HealthComponent,
@@ -100,6 +101,7 @@ def spawn_player(
             state=Enums.ANIM_STATES.IDLE,
             direction=Enums.ANIM_DIRS.DOWN,
         ),
+        DashComponent: DashComponent(),
     }
 
     world[new_id] = player

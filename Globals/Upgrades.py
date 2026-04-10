@@ -1,13 +1,24 @@
 import random
 
+from Globals import Settings
+
 UPGRADE_POOL = {
     "primary_weapon": {
-        "text": "Primary Weopon",
-        "max_level": 40,
+        "text": "Primary Weapon",
+        "max_level": Settings.UPGRADES_MAX_LEVELS.WEAPON,
     },
-    "defensives": {"text": "Defensive Upgrades", "max_level": 30},
-    "passives": {"text": "Personal Stats", "max_level": 30},
-    "pickup": {"text": "XP Magnet", "max_level": 15},
+    "defensives": {
+        "text": "Defensive Upgrades",
+        "max_level": Settings.UPGRADES_MAX_LEVELS.DEFENSE,
+    },
+    "passives": {
+        "text": "Personal Stats",
+        "max_level": Settings.UPGRADES_MAX_LEVELS.PASSIVES,
+    },
+    "pickup": {
+        "text": "Quality Of Life",
+        "max_level": Settings.UPGRADES_MAX_LEVELS.QOL,
+    },
 }
 
 
@@ -24,7 +35,7 @@ def get_reward_description(key, next_lvl):
             return "Unlocks Energy Shield"
         return "+AOE Radius & Damage"
     if key == "pickup":
-        return f"+{0.8} Grid Cells Pickup Range"
+        return "+Pickup Range & -0.5s Dash Cooldown"  # <--- Changed Description!
     return "Passive Stat Boost"
 
 

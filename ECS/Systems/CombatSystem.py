@@ -132,6 +132,11 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
                 target[AnimationComponent].current_frame = 0
                 target[AnimationComponent].speed = 0
 
+        # Spawn the damage number
+        if SpacialComponent in target:
+            rect = world[target_id][SpacialComponent].rect
+            ParticleManager.emit_damage_text(rect.centerx, rect.top, amount)
+
 
 def get_gem_value(base_value):
     return base_value * (1 + int(States.GAME_TIME // 120))
