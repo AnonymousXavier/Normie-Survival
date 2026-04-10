@@ -140,9 +140,7 @@ def spawn_normal_enemy(
     States.NEXT_ENTITY_ID += 1
 
     # --- LEVEL SCALING ---
-    p_lvl = world[States.PLAYER_ID][PlayerStatsComponent].level
-    hp_scale = p_lvl**Settings.GAME.PLAYER_LEVEL_TO_BOSS_HEALTH_EXPONENT
-    final_hp = int(Settings.GAME.DEFAULT_ENEMY_HP * mult) * hp_scale
+    final_hp = int(Settings.GAME.DEFAULT_ENEMY_HP * mult * 1.5)
 
     enemy = {
         SpacialComponent: SpacialComponent(
@@ -187,9 +185,7 @@ def spawn_stronger_enemy(
     States.NEXT_ENTITY_ID += 1
 
     # --- LEVEL SCALING ---
-    p_lvl = world[States.PLAYER_ID][PlayerStatsComponent].level
-    hp_scale = p_lvl**Settings.GAME.PLAYER_LEVEL_TO_BOSS_HEALTH_EXPONENT
-    final_hp = int(Settings.GAME.DEFAULT_ENEMY_HP * mult) * hp_scale
+    final_hp = int(Settings.GAME.BOSS_STRENGTH_MULTIPLIER * mult * 1.5)
 
     enemy = {
         SpacialComponent: SpacialComponent(
@@ -229,7 +225,6 @@ def spawn_stronger_enemy(
 def spawn_boss(world, spatial_grid, mult: float):
     new_id = States.NEXT_ENTITY_ID
     States.NEXT_ENTITY_ID += 1
-    p_lvl = world[States.PLAYER_ID][PlayerStatsComponent].level
 
     # Spawn 10 cells away from player
     player_pos = world[States.PLAYER_ID][SpacialComponent].grid_pos
@@ -247,10 +242,7 @@ def spawn_boss(world, spatial_grid, mult: float):
     boss_rect = pygame.Rect(0, 0, boss_w, boss_h)
     boss_rect.center = (tile_center_x, tile_center_y)
 
-    boss_hp = int(
-        (Settings.GAME.BOSS_STRENGTH_MULTIPLIER * mult)
-        * (p_lvl**Settings.GAME.PLAYER_LEVEL_TO_BOSS_HEALTH_EXPONENT)
-    )
+    boss_hp = int((Settings.GAME.BOSS_STRENGTH_MULTIPLIER * mult) * 1.5)
 
     boss = {
         SpacialComponent: SpacialComponent(

@@ -118,7 +118,11 @@ def process(world: dict, spatial_grid: dict, dt: float):
 def level_up(stats):
     stats.level += 1
     stats.xp -= stats.xp_to_next_level  # Keep rollover XP
-    stats.xp_to_next_level = int(stats.xp_to_next_level * 2)
+
+    # THE POLYNOMIAL CURVE
+    # Base 10, plus a smoothly increasing amount based on their level.
+    # Lvl 1->2: 10 XP. Lvl 10->11: ~168 XP. Lvl 30->31: ~830 XP.
+    stats.xp_to_next_level = int(10 + (stats.level**1.5) * 5)
 
     # Get options and build UI
     options = Upgrades.get_random_upgrades(stats.upgrades_owned)

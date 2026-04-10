@@ -152,4 +152,10 @@ def take_damage(world, spatial_grid, target_id, amount, entities_to_delete=None)
 
 
 def get_gem_value(base_value):
-    return base_value * (1 + int(States.GAME_TIME // 120))
+    # THE SMOOTH RAMP
+    # Gems increase in value by 10% every 30 seconds.
+    # At Minute 5 (300s), gems are worth double.
+    time_factor = (States.GAME_TIME / 30.0) * 0.1
+
+    # Use max() to ensure it never returns 0, and int() to keep it clean
+    return max(1, int(base_value * (1.0 + time_factor)))

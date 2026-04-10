@@ -217,7 +217,7 @@ def apply_upgrade(action_key: str, player: dict):
 
         # Apply specific scaling based on the chosen weapon
         if w_type == "shotgun":
-            w_stats.base_fire_rate = max(0.15, 1.0 - (lvl * 0.08))
+            w_stats.base_fire_rate = 1.0 * (0.9**lvl)
             w_stats.base_damage = 1 + lvl
             w_stats.projectile_count = 3 + lvl
             new_count = 1 + (lvl // 3)

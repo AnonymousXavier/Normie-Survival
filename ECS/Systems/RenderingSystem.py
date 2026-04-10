@@ -117,6 +117,33 @@ def draw_game_entities(
                     ),
                 )
 
+            # --- DASH GHOST TRAIL ---
+            if (
+                DashComponent in obj
+                and RenderComponent in obj
+                and obj[RenderComponent].sprite
+            ):
+                dash = obj[DashComponent]
+                if dash.ghosts:
+                    # Create the solid Cyan silhouette once
+                    ghost_sprite = get_hit_surface(obj[RenderComponent].sprite)
+                    ghost_sprite.fill(
+                        (0, 255, 255, 255), special_flags=pygame.BLEND_RGBA_MULT
+                    )
+
+                    for ghost in dash.ghosts:
+                        ghost_x, ghost_y, alpha = ghost
+                        # Translate world pixel coords to camera coords
+                        render_ghost_x = ghost_x - camera_rect.left
+                        render_ghost_y = ghost_y - camera_rect.top
+
+                        # Apply the fading transparency and draw onto the floor layer
+                        temp_sprite = ghost_sprite.copy()
+                        temp_sprite.set_alpha(int(alpha))
+                        render_surface.blit(
+                            temp_sprite, (render_ghost_x, render_ghost_y)
+                        )
+
     # ==========================================
     # PASS 2: THE ACTORS (Sprites, Shields, UI)
     # ==========================================
@@ -151,9 +178,6 @@ def draw_game_entities(
                 pygame.draw.rect(
                     render_surface, obj[RenderComponent].color, render_rect
                 )
-
-            # --- OVERLAYS (Shields, HP Bars, Flashes) ---
-            # ... [Keep your existing Shield and HP bar code here] ...
 
             # ==========================================
             # OVERLAYS (Shields, HP, Trails, Flashes)
@@ -308,14 +332,6 @@ def draw_game_entities(
                     pygame.draw.rect(render_surface, (255, 255, 255), render_rect)
 
                 obj[HealthComponent].hit_timer -= dt
-
-            # Dash Ready Flash (Cyan Electrical Glow)
-            if DashComponent in obj and obj[DashComponent].flash_timer > 0:
-                ready_sprite = get_hit_surface(obj[RenderComponent].sprite)
-                ready_sprite.fill(
-                    (0, 255, 255, 255), special_flags=pygame.BLEND_RGBA_MULT
-                )
-                render_surface.blit(ready_sprite, render_rect)
 
     ParticleManager.update_and_draw(
         render_surface,
