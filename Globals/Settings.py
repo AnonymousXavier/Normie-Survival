@@ -107,7 +107,6 @@ class CAMERA:
     HEIGHT = WINDOW.HEIGHT / ZOOM
 
     SIZE = WIDTH, HEIGHT
-    print(ZOOM)
 
     @classmethod
     def update(cls):
@@ -116,8 +115,6 @@ class CAMERA:
         cls.HEIGHT = WINDOW.HEIGHT / cls.ZOOM
 
         cls.SIZE = cls.WIDTH, cls.HEIGHT
-
-        print(cls.ZOOM)
 
 
 class CONTROLS:

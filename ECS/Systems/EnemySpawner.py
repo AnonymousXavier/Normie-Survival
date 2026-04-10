@@ -22,7 +22,6 @@ def process(world: dict, spatial_grid: dict, dt: float):
     ) * Settings.GAME.MAX_ENEMIES_SPAWNABLE
 
     current_cap = min(current_cap, Settings.GAME.MAX_ENEMIES_SPAWNABLE)
-    print(current_cap, spawned_enemies)
 
     # Only spawn if under cap AND timer is ready
     if spawned_enemies < current_cap:
