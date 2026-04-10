@@ -55,7 +55,6 @@ def process(world: dict, global_events: list, dt: float):
             if event.key == pygame.K_F11:
                 pygame.display.toggle_fullscreen()
                 States.UI_DIRTY = True
-                Settings.CAMERA.update()
 
             if event.key == pygame.K_ESCAPE and States.CURRENT_STATE == "PLAYING":
                 # Toggle the Pause State!

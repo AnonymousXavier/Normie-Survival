@@ -32,7 +32,7 @@ def process(world: dict, spatial_grid: dict, dt: float):
 def get_difficulty_mult():
     minutes = States.GAME_TIME / 60.0
 
-    time_factor = (minutes**1.25) * 0.1
+    time_factor = (minutes**1.25) * 0.5
 
     return 1.0 + time_factor
 

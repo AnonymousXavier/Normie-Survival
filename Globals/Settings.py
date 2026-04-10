@@ -109,11 +109,7 @@ class CAMERA:
 
     @classmethod
     def update(cls):
-        cls.ZOOM = WINDOW.HEIGHT / (CELLS.HEIGHT * cls.CELLS_IN_VIEW)
-        cls.WIDTH = WINDOW.WIDTH / cls.ZOOM
-        cls.HEIGHT = WINDOW.HEIGHT / cls.ZOOM
-
-        cls.SIZE = cls.WIDTH, cls.HEIGHT
+        pass
 
 
 class CONTROLS:
